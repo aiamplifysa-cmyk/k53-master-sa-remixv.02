@@ -20,7 +20,9 @@ A South African K53 study app based on your uploaded starter site, questions, ro
 Fresh, distinctive look inspired by the SA flag green from your starter (not a copy of the generic template), mobile friendly, large tap targets.
 
 ## Notes
-- Your question bank has only a handful of questions; I'll expand it with more K53-style questions so mock tests are realistic. You should review these for accuracy.
+- Uses your 373-question bank (original 100, Tests A/B/C, motorcycle, light and heavy vehicle) with its sign images. Questions marked as having missing or conflicting answers are hidden from tests and listed for you to fix.
+- Learners pick their licence code (Code 1 motorcycle, Code 2 light, Code 3 heavy) and get matching questions and practical manuals (motorcycle, light, heavy, Code EB).
+- Road sign charts, signage catalogue, vehicle controls manual and DLTC guide are added to the guides as readable sections plus downloadable PDFs.
 - Mock test section sizes and pass marks will follow the standard learner's test (Code 1/2/3 style) — confirm if you want different numbers.
 
 ## Technical details
