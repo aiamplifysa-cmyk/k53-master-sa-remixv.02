@@ -26,7 +26,7 @@ export interface Sign {
   name: string;
   meaning: string;
   group: SignGroup;
-  icon?: string;
+  icon?: string | undefined;
   variants: string[];
 }
 
