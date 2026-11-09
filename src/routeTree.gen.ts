@@ -10,11 +10,28 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DltcRouteImport } from './routes/dltc'
 import { Route as LearnRouteImport } from './routes/learn'
+import { Route as MockTestRouteImport } from './routes/mock-test'
+import { Route as PracticalRouteImport } from './routes/practical'
+import { Route as PracticeRouteImport } from './routes/practice'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ReviewRouteImport } from './routes/review'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DltcRoute = DltcRouteImport.update({
+  id: '/dltc',
+  path: '/dltc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LearnRoute = LearnRouteImport.update({
@@ -22,31 +39,112 @@ const LearnRoute = LearnRouteImport.update({
   path: '/learn',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MockTestRoute = MockTestRouteImport.update({
+  id: '/mock-test',
+  path: '/mock-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticalRoute = PracticalRouteImport.update({
+  id: '/practical',
+  path: '/practical',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticeRoute = PracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/dltc': typeof DltcRoute
   '/learn': typeof LearnRoute
+  '/mock-test': typeof MockTestRoute
+  '/practical': typeof PracticalRoute
+  '/practice': typeof PracticeRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/review': typeof ReviewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/dltc': typeof DltcRoute
   '/learn': typeof LearnRoute
+  '/mock-test': typeof MockTestRoute
+  '/practical': typeof PracticalRoute
+  '/practice': typeof PracticeRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/review': typeof ReviewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/dltc': typeof DltcRoute
   '/learn': typeof LearnRoute
+  '/mock-test': typeof MockTestRoute
+  '/practical': typeof PracticalRoute
+  '/practice': typeof PracticeRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/review': typeof ReviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/learn'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dltc'
+    | '/learn'
+    | '/mock-test'
+    | '/practical'
+    | '/practice'
+    | '/reset-password'
+    | '/review'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/learn'
-  id: '__root__' | '/' | '/learn'
+  to:
+    | '/'
+    | '/auth'
+    | '/dltc'
+    | '/learn'
+    | '/mock-test'
+    | '/practical'
+    | '/practice'
+    | '/reset-password'
+    | '/review'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/dltc'
+    | '/learn'
+    | '/mock-test'
+    | '/practical'
+    | '/practice'
+    | '/reset-password'
+    | '/review'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
+  DltcRoute: typeof DltcRoute
   LearnRoute: typeof LearnRoute
+  MockTestRoute: typeof MockTestRoute
+  PracticalRoute: typeof PracticalRoute
+  PracticeRoute: typeof PracticeRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  ReviewRoute: typeof ReviewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +156,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dltc': {
+      id: '/dltc'
+      path: '/dltc'
+      fullPath: '/dltc'
+      preLoaderRoute: typeof DltcRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/learn': {
       id: '/learn'
       path: '/learn'
@@ -65,12 +177,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LearnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mock-test': {
+      id: '/mock-test'
+      path: '/mock-test'
+      fullPath: '/mock-test'
+      preLoaderRoute: typeof MockTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practical': {
+      id: '/practical'
+      path: '/practical'
+      fullPath: '/practical'
+      preLoaderRoute: typeof PracticalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
+  DltcRoute: DltcRoute,
   LearnRoute: LearnRoute,
+  MockTestRoute: MockTestRoute,
+  PracticalRoute: PracticalRoute,
+  PracticeRoute: PracticeRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  ReviewRoute: ReviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
