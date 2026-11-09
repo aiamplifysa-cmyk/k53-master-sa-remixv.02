@@ -1,5 +1,5 @@
 import {createFileRoute,Link} from '@tanstack/react-router';
-import {ArrowRight,BookOpen,Check,Clock,ClipboardCheck,Signpost,Target,TrendingUp,ChevronRight,Route,ShieldCheck} from 'lucide-react';
+import {ArrowRight,BookOpen,Check,Clock,ClipboardCheck,Signpost,Target,TrendingUp,ChevronRight,Route as RouteIcon,ShieldCheck} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useStudy} from '@/components/study-provider';
 import {CATEGORIES} from '@/data/categories';
