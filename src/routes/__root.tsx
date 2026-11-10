@@ -12,9 +12,9 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { StudyProvider } from '@/components/study-provider';
-import { AppShell } from '@/components/app-shell';
-import { Toaster } from '@/components/ui/sonner';
+import { StudyProvider } from "@/components/study-provider";
+import { AppShell } from "@/components/app-shell";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -82,9 +82,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "K53 Master SA" },
-      { name: "description", content: "Learn South African road signs, practise the rules and prepare for your K53 learner’s test." },
+      {
+        name: "description",
+        content:
+          "Learn South African road signs, practise the rules and prepare for your K53 learner’s test.",
+      },
       { property: "og:title", content: "K53 Master SA" },
-      { property: "og:description", content: "Your road to a confident South African learner’s test." },
+      {
+        property: "og:description",
+        content: "Your road to a confident South African learner’s test.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -94,7 +101,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap' },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -122,7 +132,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <StudyProvider><AppShell><Outlet /></AppShell></StudyProvider>
+      <StudyProvider>
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      </StudyProvider>
       <Toaster />
     </QueryClientProvider>
   );
