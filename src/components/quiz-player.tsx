@@ -1,14 +1,186 @@
-import {useEffect,useState} from 'react';
-import {Link} from '@tanstack/react-router';
-import {ArrowRight,CheckCircle2,XCircle,Clock,RotateCcw} from 'lucide-react';
-import {Button} from '@/components/ui/button';
-import {useStudy} from './study-provider';
-import {scoreMock,shuffle,type Question} from '@/lib/quiz';
-import {CATEGORIES} from '@/data/categories';
-export function QuizPlayer({questions,mock=false,onClose}:{questions:Question[];mock?:boolean;onClose:()=>void}){const {record}=useStudy();const [index,setIndex]=useState(0),[answers,setAnswers]=useState<Record<string,number>>({}),[finished,setFinished]=useState(false),[seconds,setSeconds]=useState(3600);const [orders]=useState(()=>Object.fromEntries(questions.map(q=>[q.id,shuffle(q.options.map((_,i)=>i))])));const q=questions[index];const selected=q?answers[q.id]:undefined;
- const finish=()=>{if(finished)return;setFinished(true);const created_at=new Date().toISOString();record(questions.map(q=>({id:crypto.randomUUID(),question_id:q.id,category:q.cat,correct:answers[q.id]===q.answer,created_at})),{id:crypto.randomUUID(),mode:mock?'mock':'practice',created_at,results:mock?scoreMock(questions,answers):{correct:questions.filter(q=>answers[q.id]===q.answer).length,total:questions.length}});};
- useEffect(()=>{if(!mock||finished)return;const timer=setInterval(()=>setSeconds(s=>Math.max(0,s-1)),1000);return()=>clearInterval(timer);},[mock,finished]);useEffect(()=>{if(mock&&seconds===0)finish();},[seconds]);
- if(finished){const result=scoreMock(questions,answers);const correct=questions.filter(q=>answers[q.id]===q.answer).length;return <div className="results"><span className="eyebrow">{mock?'MOCK TEST RESULTS':'PRACTICE COMPLETE'}</span><h1>{mock?(result.passed?'You passed this mock test.':'Keep building your confidence.'):'Another step forward.'}</h1><p className="result-score">{correct}<span> / {questions.length} correct</span></p>{mock?<div className="result-sections">{result.sections.map(s=><div key={s.key}><h3>{s.name}</h3><strong>{s.correct}/{s.total}</strong><p>{s.passed?'Passed':'More practice needed'} · target {s.pass}/{s.count}</p></div>)}</div>:null}<div className="lesson-actions"><Button onClick={onClose}><RotateCcw/>Practise again</Button><Button asChild variant="outline"><Link to="/review">Review mistakes<ArrowRight/></Link></Button></div><h2>Your answers</h2>{questions.map(q=><div className="answer-review" key={q.id}>{answers[q.id]===q.answer?<CheckCircle2 className="text-primary"/>:<XCircle className="text-destructive"/>}<div><strong>{q.q}</strong><p>Correct answer: {q.options[q.answer]}</p>{q.explain?<p>{q.explain}</p>:null}</div></div>)}</div>;}
- if(!q)return <p>No questions available.</p>;
- return <div className="quiz-space"><div className="quiz-top"><span>{mock?'MOCK TEST':'PRACTICE'} · QUESTION {index+1} OF {questions.length}</span>{mock?<span><Clock size={16}/>{Math.floor(seconds/60)}:{String(seconds%60).padStart(2,'0')}</span>:null}</div><progress max={questions.length} value={index+1}/><span className="eyebrow">{CATEGORIES[q.cat]?.name}</span><h1>{q.q}</h1>{q.images?.map(img=><figure className="question-image" key={img.url}><img src={img.url} alt={img.cap}/><figcaption>{img.cap}</figcaption></figure>)}<div className="answer-options">{orders[q.id]?.map((opt,i)=><Button key={opt} variant="outline" disabled={!mock&&selected!==undefined} className={`answer-option ${selected===opt?'answer-selected':''} ${!mock&&selected!==undefined&&opt===q.answer?'answer-correct':''}`} onClick={()=>setAnswers(a=>({...a,[q.id]:opt}))}><span>{String.fromCharCode(65+i)}</span><span>{q.options[opt]}</span>{!mock&&selected!==undefined&&opt===q.answer?<CheckCircle2/>:null}</Button>)}</div>{!mock&&selected!==undefined?<div className={`feedback ${selected===q.answer?'feedback-correct':''}`}><strong>{selected===q.answer?'That’s correct.':'Not quite. Keep learning.'}</strong><p>{q.explain||`The correct answer is: ${q.options[q.answer]}.`}</p>{q.note?<small>{q.note}</small>:null}</div>:null}<div className="quiz-actions"><Button variant="ghost" onClick={onClose}>Exit {mock?'test':'practice'}</Button>{index>0&&mock?<Button variant="outline" onClick={()=>setIndex(i=>i-1)}>Previous</Button>:null}<Button disabled={selected===undefined} onClick={()=>index===questions.length-1?finish():setIndex(i=>i+1)}>{index===questions.length-1?'Finish & see results':'Next question'}<ArrowRight/></Button></div></div>;
+import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, CheckCircle2, XCircle, Clock, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useStudy } from "./study-provider";
+import { scoreMock, shuffle, type Question } from "@/lib/quiz";
+import { CATEGORIES } from "@/data/categories";
+export function QuizPlayer({
+  questions,
+  mock = false,
+  onClose,
+}: {
+  questions: Question[];
+  mock?: boolean;
+  onClose: () => void;
+}) {
+  const { record } = useStudy();
+  const [index, setIndex] = useState(0),
+    [answers, setAnswers] = useState<Record<string, number>>({}),
+    [finished, setFinished] = useState(false),
+    [seconds, setSeconds] = useState(3600);
+  const [orders] = useState(() =>
+    Object.fromEntries(questions.map((q) => [q.id, shuffle(q.options.map((_, i) => i))])),
+  );
+  const q = questions[index];
+  const selected = q ? answers[q.id] : undefined;
+  const finish = () => {
+    if (finished) return;
+    setFinished(true);
+    const created_at = new Date().toISOString();
+    record(
+      questions.map((q) => ({
+        id: crypto.randomUUID(),
+        question_id: q.id,
+        category: q.cat,
+        correct: answers[q.id] === q.answer,
+        created_at,
+      })),
+      {
+        id: crypto.randomUUID(),
+        mode: mock ? "mock" : "practice",
+        created_at,
+        results: mock
+          ? scoreMock(questions, answers)
+          : {
+              correct: questions.filter((q) => answers[q.id] === q.answer).length,
+              total: questions.length,
+            },
+      },
+    );
+  };
+  useEffect(() => {
+    if (!mock || finished) return;
+    const timer = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(timer);
+  }, [mock, finished]);
+  useEffect(() => {
+    if (mock && seconds === 0) finish();
+  }, [seconds]);
+  if (finished) {
+    const result = scoreMock(questions, answers);
+    const correct = questions.filter((q) => answers[q.id] === q.answer).length;
+    return (
+      <div className="results">
+        <span className="eyebrow">{mock ? "MOCK TEST RESULTS" : "PRACTICE COMPLETE"}</span>
+        <h1>
+          {mock
+            ? result.passed
+              ? "You passed this mock test."
+              : "Keep building your confidence."
+            : "Another step forward."}
+        </h1>
+        <p className="result-score">
+          {correct}
+          <span> / {questions.length} correct</span>
+        </p>
+        {mock ? (
+          <div className="result-sections">
+            {result.sections.map((s) => (
+              <div key={s.key}>
+                <h3>{s.name}</h3>
+                <strong>
+                  {s.correct}/{s.total}
+                </strong>
+                <p>
+                  {s.passed ? "Passed" : "More practice needed"} · target {s.pass}/{s.count}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <div className="lesson-actions">
+          <Button onClick={onClose}>
+            <RotateCcw />
+            Practise again
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/review">
+              Review mistakes
+              <ArrowRight />
+            </Link>
+          </Button>
+        </div>
+        <h2>Your answers</h2>
+        {questions.map((q) => (
+          <div className="answer-review" key={q.id}>
+            {answers[q.id] === q.answer ? (
+              <CheckCircle2 className="text-primary" />
+            ) : (
+              <XCircle className="text-destructive" />
+            )}
+            <div>
+              <strong>{q.q}</strong>
+              <p>Correct answer: {q.options[q.answer]}</p>
+              {q.explain ? <p>{q.explain}</p> : null}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (!q) return <p>No questions available.</p>;
+  return (
+    <div className="quiz-space">
+      <div className="quiz-top">
+        <span>
+          {mock ? "MOCK TEST" : "PRACTICE"} · QUESTION {index + 1} OF {questions.length}
+        </span>
+        {mock ? (
+          <span>
+            <Clock size={16} />
+            {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
+          </span>
+        ) : null}
+      </div>
+      <progress max={questions.length} value={index + 1} />
+      <span className="eyebrow">{CATEGORIES[q.cat]?.name}</span>
+      <h1>{q.q}</h1>
+      {q.images?.map((img) => (
+        <figure className="question-image" key={img.url}>
+          <img src={img.url} alt={img.cap} />
+          <figcaption>{img.cap}</figcaption>
+        </figure>
+      ))}
+      <div className="answer-options">
+        {orders[q.id]?.map((opt, i) => (
+          <Button
+            key={opt}
+            variant="outline"
+            disabled={!mock && selected !== undefined}
+            className={`answer-option ${selected === opt ? "answer-selected" : ""} ${!mock && selected !== undefined && opt === q.answer ? "answer-correct" : ""}`}
+            onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt }))}
+          >
+            <span>{String.fromCharCode(65 + i)}</span>
+            <span>{q.options[opt]}</span>
+            {!mock && selected !== undefined && opt === q.answer ? <CheckCircle2 /> : null}
+          </Button>
+        ))}
+      </div>
+      {!mock && selected !== undefined ? (
+        <div className={`feedback ${selected === q.answer ? "feedback-correct" : ""}`}>
+          <strong>{selected === q.answer ? "That’s correct." : "Not quite. Keep learning."}</strong>
+          <p>{q.explain || `The correct answer is: ${q.options[q.answer]}.`}</p>
+          {q.note ? <small>{q.note}</small> : null}
+        </div>
+      ) : null}
+      <div className="quiz-actions">
+        <Button variant="ghost" onClick={onClose}>
+          Exit {mock ? "test" : "practice"}
+        </Button>
+        {index > 0 && mock ? (
+          <Button variant="outline" onClick={() => setIndex((i) => i - 1)}>
+            Previous
+          </Button>
+        ) : null}
+        <Button
+          disabled={selected === undefined}
+          onClick={() => (index === questions.length - 1 ? finish() : setIndex((i) => i + 1))}
+        >
+          {index === questions.length - 1 ? "Finish & see results" : "Next question"}
+          <ArrowRight />
+        </Button>
+      </div>
+    </div>
+  );
 }
