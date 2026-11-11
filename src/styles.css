@@ -1582,3 +1582,4 @@ select {
     animation: none !important;
   }
 }
+@media(max-width:600px){.sidebar>nav:nth-of-type(2){display:flex;gap:5px}.sidebar>nav:nth-of-type(2) .nav-link{width:36px;flex:0 0 36px;overflow:hidden}.sidebar>nav:nth-of-type(2) .nav-link span{display:none}}
