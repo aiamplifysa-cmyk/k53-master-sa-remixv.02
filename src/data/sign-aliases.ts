@@ -1,0 +1,23 @@
+// Chart-labelled variants used to represent parent entries. No guessed artwork.
+export const SIGN_ALIASES: Record<string, string> = {
+  R305: "R305-P",
+  R306: "R306-P",
+  R501: "(TR)501",
+  R511: "(TR)511",
+  R520: "(TR)520",
+  R530: "(TR)530",
+  R560: "(TR)560",
+  R600: "(TR)600",
+  GE1: "GE2",
+  GE18: "GE18.3",
+  GE19: "GE19.3",
+  GD1: "GD1/GD2",
+  S10: "S10R",
+  "GFS B1": "GFSB1-1",
+  "GFS B2": "GFSB2-1",
+  "GFS B4": "GFSB4-1",
+  "GFS B5": "GFSB5-1",
+  "GFS B6": "GFSB6-1",
+  "GFS C1": "GFSC1-1",
+  "GFS D1": "GFSD1-1",
+};

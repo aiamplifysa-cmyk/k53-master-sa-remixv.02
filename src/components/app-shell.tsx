@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               key={n.to}
               className={`nav-link ${path === n.to ? "nav-active" : ""}`}
             >
-              <Link to={n.to}>
+              <Link to={n.to} aria-label={n.label} title={n.label}>
                 <n.icon size={19} />
                 <span>{n.label}</span>
                 {n.to === "/review" && retry.length > 0 ? (
@@ -64,9 +64,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             variant="ghost"
             className={`nav-link ${path === "/practical" ? "nav-active" : ""}`}
           >
-            <Link to="/practical">
+            <Link
+              to="/practical"
+              aria-label="Practical driving guide"
+              title="Practical driving guide"
+            >
               <Car />
-              Practical driving guide
+              <span>Practical driving guide</span>
             </Link>
           </Button>
           <Button
@@ -74,9 +78,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             variant="ghost"
             className={`nav-link ${path === "/dltc" ? "nav-active" : ""}`}
           >
-            <Link to="/dltc">
+            <Link to="/dltc" aria-label="DLTC & resources" title="DLTC & resources">
               <MapPin />
-              DLTC & resources
+              <span>DLTC & resources</span>
             </Link>
           </Button>
         </nav>
