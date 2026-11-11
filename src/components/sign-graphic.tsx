@@ -1,8 +1,9 @@
 import artwork from "@/data/sign-artwork.json";
 import type { Sign } from "@/data/signs";
+import {SIGN_ALIASES} from '@/data/sign-aliases';
 export const artworkFor = (code: string) =>
   artwork.find(
-    (a) => a.code === code || a.code === `(${code})` || a.code === code.replace(/\s/g, ""),
+    (a) => a.code === code || a.code === `(${code})` || a.code === code.replace(/\s/g, "") || a.code === SIGN_ALIASES[code],
   );
 export function SignGraphic({ sign }: { sign: Sign }) {
   const art = artworkFor(sign.code);
