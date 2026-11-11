@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Application architecture
+- Keep learning content in browser-safe static modules and quiz scoring in pure functions so study does not require database round-trips.
+- Render road signs from documented source-chart crops; never substitute generic icons for unverified signs.
+- Keep local study records isolated per learner in IndexedDB; synchronize idempotent batches through authenticated server functions and never cache private server responses.
+- Offline support uses generateSW with one preview-safe registrar; navigation is NetworkFirst and OAuth is excluded.
