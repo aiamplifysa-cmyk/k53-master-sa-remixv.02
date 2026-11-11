@@ -5,31 +5,72 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { VitePWA } from 'vite-plugin-pwa';
-import artwork from './src/data/sign-artwork.json';
-import references from './src/data/reference-images.json';
-import questions from './src/data/questions.json';
+import { VitePWA } from "vite-plugin-pwa";
+import artwork from "./src/data/sign-artwork.json";
+import references from "./src/data/reference-images.json";
+import questions from "./src/data/questions.json";
 
 export default defineConfig({
-  plugins: [VitePWA({
-    outDir: 'dist/client',
-    strategies: 'generateSW',
-    filename: 'sw.js',
-    registerType: 'autoUpdate',
-    injectRegister: null,
-    devOptions: { enabled: false },
-    manifest: { name: 'K53 Master SA', short_name: 'K53 Master', start_url: '/', scope: '/', display: 'standalone', theme_color: '#087956', background_color: '#f8fbf9', icons: [{src:'/icon-192.png',sizes:'192x192',type:'image/png'},{src:'/icon-512.png',sizes:'512x512',type:'image/png',purpose:'any maskable'}] },
-    workbox: {
-      globPatterns: ['**/*.{js,css,png,jpg,webp,woff2}'],
-      maximumFileSizeToCacheInBytes: 5000000,
-      additionalManifestEntries: [...new Set([...artwork.map(a=>a.url),...references.manual,...Object.values(references.vehicle).flat(),...questions.flatMap(q=>q.images?.map(i=>i.url)??[])])].map(url=>({url,revision:null})),
-      navigateFallback: null,
-      runtimeCaching: [
-        { urlPattern: ({request,url})=>request.mode==='navigate'&&!url.pathname.startsWith('/~oauth')&&!url.pathname.startsWith('/auth')&&!url.pathname.startsWith('/reset-password'), handler:'NetworkFirst', options:{cacheName:'k53-pages',networkTimeoutSeconds:5,expiration:{maxEntries:30}} },
-        { urlPattern: ({url,sameOrigin})=>sameOrigin&&/^\/assets\/.*-[\w-]+\.(js|css|jpg|png|webp)$/.test(url.pathname),handler:'CacheFirst',options:{cacheName:'k53-assets',expiration:{maxEntries:150,maxAgeSeconds:31536000}} },
-      ],
-    },
-  })],
+  plugins: [
+    VitePWA({
+      outDir: "dist/client",
+      strategies: "generateSW",
+      filename: "sw.js",
+      registerType: "autoUpdate",
+      injectRegister: null,
+      devOptions: { enabled: false },
+      manifest: {
+        name: "K53 Master SA",
+        short_name: "K53 Master",
+        start_url: "/",
+        scope: "/",
+        display: "standalone",
+        theme_color: "#087956",
+        background_color: "#f8fbf9",
+        icons: [
+          { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,png,jpg,webp,woff2}"],
+        maximumFileSizeToCacheInBytes: 5000000,
+        additionalManifestEntries: [
+          ...new Set([
+            ...artwork.map((a) => a.url),
+            ...references.manual,
+            ...Object.values(references.vehicle).flat(),
+            ...questions.flatMap((q) => q.images?.map((i) => i.url) ?? []),
+          ]),
+        ].map((url) => ({ url, revision: null })),
+        navigateFallback: null,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request, url }) =>
+              request.mode === "navigate" &&
+              !url.pathname.startsWith("/~oauth") &&
+              !url.pathname.startsWith("/auth") &&
+              !url.pathname.startsWith("/reset-password"),
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "k53-pages",
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 30 },
+            },
+          },
+          {
+            urlPattern: ({ url, sameOrigin }) =>
+              sameOrigin && /^\/assets\/.*-[\w-]+\.(js|css|jpg|png|webp)$/.test(url.pathname),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "k53-assets",
+              expiration: { maxEntries: 150, maxAgeSeconds: 31536000 },
+            },
+          },
+        ],
+      },
+    }),
+  ],
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this

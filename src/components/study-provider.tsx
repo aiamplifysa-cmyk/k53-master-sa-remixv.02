@@ -48,55 +48,70 @@ const Context = createContext<{
   setVehicle: () => {},
   refresh: async () => {},
 });
+const db = () =>
+  openDB("k53-study", 1, {
+    upgrade(d) {
+      d.createObjectStore("progress");
+    },
+  });
 export function StudyProvider({ children }: { children: ReactNode }) {
-  const [progress, setProgress] = useState(initial);
-  const [user, setUser] = useState<User | null>(null);
-  const [online, setOnline] = useState(true);
-  const [syncState, setSyncState] = useState("On this device");
-  const [name, setName] = useState("Learner");
-  const loaded = useRef(false);
-  const busy = useRef(false);
-  const current = useRef(progress);
+  const [progress, setProgress] = useState(initial),
+    [user, setUser] = useState<User | null>(null),
+    [online, setOnline] = useState(true),
+    [syncState, setSyncState] = useState("On this device"),
+    [name, setName] = useState("Learner"),
+    [ready, setReady] = useState(false);
+  const current = useRef(progress),
+    identity = useRef<User | null>(null),
+    key = useRef("guest"),
+    busy = useRef(false),
+    generation = useRef(0);
   current.current = progress;
   const send = useServerFn(syncProgress),
     read = useServerFn(loadProgress);
-  const db = () =>
-    openDB("k53-study", 1, {
-      upgrade(d) {
-        d.createObjectStore("progress");
-      },
-    });
+  const persist = (p: Progress) => {
+    current.current = p;
+    setProgress(p);
+    void db().then((d) => d.put("progress", p, key.current));
+  };
   const refresh = async () => {
-    if (!user || !navigator.onLine || busy.current) return;
+    const account = identity.current;
+    if (!account || !navigator.onLine || busy.current || !ready) return;
     busy.current = true;
+    const g = generation.current;
     setSyncState("Syncing…");
     try {
       const d = await db();
-      const saved = (await d.get("progress", `synced:${user.id}`)) ?? { attempts: [], tests: [] };
-      const p = current.current;
-      const attempts = p.attempts.filter((a) => !saved.attempts.includes(a.id));
-      const tests = p.tests.filter((t) => !saved.tests.includes(t.id));
+      const saved = (await d.get("progress", `synced:${account.id}`)) ?? {
+        attempts: [],
+        tests: [],
+      };
+      const snapshot = current.current;
+      const attempts = snapshot.attempts.filter((a) => !saved.attempts.includes(a.id)),
+        tests = snapshot.tests.filter((t) => !saved.tests.includes(t.id));
       for (let i = 0; i < attempts.length; i += 500)
         await send({ data: { attempts: attempts.slice(i, i + 500), tests: [] } });
       for (let i = 0; i < tests.length; i += 50)
         await send({ data: { attempts: [], tests: tests.slice(i, i + 50) } });
       const remote = await read();
+      if (g !== generation.current) return;
+      const latest = current.current;
       const mergedA = Array.from(
-        new Map([...remote.attempts, ...p.attempts].map((a) => [a.id, a])).values(),
+        new Map([...remote.attempts, ...latest.attempts].map((a) => [a.id, a])).values(),
       ).sort((a, b) => a.created_at.localeCompare(b.created_at));
       const mergedT = Array.from(
-        new Map([...remote.tests, ...p.tests].map((t) => [t.id, t as TestRecord])).values(),
+        new Map([...remote.tests, ...latest.tests].map((t) => [t.id, t as TestRecord])).values(),
       );
-      setProgress({ ...p, attempts: mergedA, tests: mergedT });
-      setName(remote.profile?.display_name || user.user_metadata?.["display_name"] || "Learner");
+      persist({ ...latest, attempts: mergedA, tests: mergedT });
+      setName(remote.profile?.display_name || account.user_metadata?.["display_name"] || "Learner");
       await d.put(
         "progress",
-        { attempts: mergedA.map((a) => a.id), tests: mergedT.map((t) => t.id) },
-        `synced:${user.id}`,
+        { attempts: remote.attempts.map((a) => a.id), tests: remote.tests.map((t) => t.id) },
+        `synced:${account.id}`,
       );
       setSyncState("All progress saved");
     } catch {
-      setSyncState("Saved here · sync pending");
+      if (g === generation.current) setSyncState("Saved here · sync pending");
     } finally {
       busy.current = false;
     }
@@ -106,41 +121,48 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     update();
     window.addEventListener("online", update);
     window.addEventListener("offline", update);
-    void db()
-      .then((d) => d.get("progress", "guest"))
-      .then((p) => {
-        if (p) setProgress(p);
-        loaded.current = true;
-      });
+    const switchUser = async (next: User | null) => {
+      const g = ++generation.current;
+      identity.current = next;
+      setReady(false);
+      setProgress(initial);
+      setName("Learner");
+      key.current = next ? `user:${next.id}` : "guest";
+      const d = await db();
+      const saved = await d.get("progress", key.current);
+      if (g !== generation.current) return;
+      current.current = saved ?? initial;
+      setProgress(saved ?? initial);
+      setUser(next);
+      setReady(true);
+    };
+    void supabase.auth.getUser().then(({ data }) => switchUser(data.user));
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
+      if (event === "SIGNED_OUT") void switchUser(null);
+      else void supabase.auth.getUser().then(({ data }) => switchUser(data.user));
+    });
     return () => {
+      data.subscription.unsubscribe();
       window.removeEventListener("online", update);
       window.removeEventListener("offline", update);
     };
   }, []);
   useEffect(() => {
-    void supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
-      void supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    });
-    return () => data.subscription.unsubscribe();
-  }, []);
-  useEffect(() => {
-    if (loaded.current) void db().then((d) => d.put("progress", progress, "guest"));
-  }, [progress]);
-  useEffect(() => {
-    if (user && online) void refresh();
+    if (ready && user && online) void refresh();
     else setSyncState("On this device");
-  }, [user?.id, online]);
+  }, [ready, user?.id, online]);
+  useEffect(() => {
+    if (!user || !online) return;
+    const timer = setInterval(() => void refresh(), 30000);
+    return () => clearInterval(timer);
+  }, [user?.id, online, ready]);
   const record = (a: Attempt[], t?: TestRecord) => {
-    const p = {
+    persist({
       ...current.current,
       attempts: [...current.current.attempts, ...a],
       tests: t ? [...current.current.tests, t] : current.current.tests,
-    };
-    current.current = p;
-    setProgress(p);
-    void db().then((d) => d.put("progress", p, "guest"));
+    });
     if (user && online) void refresh();
   };
   return (
@@ -153,8 +175,9 @@ export function StudyProvider({ children }: { children: ReactNode }) {
         name,
         retry: retryIds(progress.attempts),
         record,
-        learn: (cat) => setProgress((p) => ({ ...p, learned: [...new Set([...p.learned, cat])] })),
-        setVehicle: (vehicle) => setProgress((p) => ({ ...p, vehicle })),
+        learn: (cat) =>
+          persist({ ...current.current, learned: [...new Set([...current.current.learned, cat])] }),
+        setVehicle: (vehicle) => persist({ ...current.current, vehicle }),
         refresh,
       }}
     >

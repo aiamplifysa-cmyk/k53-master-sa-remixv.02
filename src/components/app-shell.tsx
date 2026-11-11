@@ -64,7 +64,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             variant="ghost"
             className={`nav-link ${path === "/practical" ? "nav-active" : ""}`}
           >
-            <Link to="/practical" aria-label="Practical driving guide" title="Practical driving guide">
+            <Link
+              to="/practical"
+              aria-label="Practical driving guide"
+              title="Practical driving guide"
+            >
               <Car />
               <span>Practical driving guide</span>
             </Link>
