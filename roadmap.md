@@ -1,7 +1,11 @@
 # K53 build
-- [ ] Build eight-category learning dashboard, lessons and road-sign library.
-- [ ] Build practice, retry pile and section-scored mock tests.
-- [ ] Add learner profiles, sign-in and private batched progress sync.
-- [ ] Add practical/DLTC guides and supplied references.
-- [ ] Add guarded installable offline support.
-- [ ] Verify content, desktop/mobile flows, and document remaining source gaps and capacity limits.
+- [x] Build eight-category learning dashboard, lessons and road-sign library.
+- [x] Build practice, retry pile and section-scored mock tests.
+- [x] Add learner profiles, sign-in and private batched progress sync.
+- [x] Add practical/DLTC guides and supplied references.
+- [x] Add guarded installable offline support.
+- [x] Verify public desktop/mobile practice and flashcard flows; nine learning/routing tests passed.
+- [ ] Verify signed-in sync and profile creation — needs the first confirmed learner account.
+- [ ] Verify published offline restart — needs publication; preview deliberately disables offline caching.
+- [ ] Reconcile every catalogue variant and explanation against sources — source audit remains, no completeness claim.
+- [ ] Measure 500 simultaneous users — needs a published target and controlled load-test window.
