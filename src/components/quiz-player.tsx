@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { useStudy } from "./study-provider";
 import { scoreMock, shuffle, type Question } from "@/lib/quiz";
 import { CATEGORIES } from "@/data/categories";
+import { SignGraphic } from "./sign-graphic";
+import { questionVisuals } from "@/lib/question-visuals";
+import { signByCode } from "@/data/signs";
 export function QuizPlayer({
   questions,
   mock = false,
@@ -136,12 +139,21 @@ export function QuizPlayer({
       <progress max={questions.length} value={index + 1} />
       <span className="eyebrow">{CATEGORIES[q.cat]?.name}</span>
       <h1>{q.q}</h1>
-      {q.images?.map((img) => (
-        <figure className="question-image" key={img.url}>
-          <img src={img.url} alt={img.cap} />
-          <figcaption>{img.cap}</figcaption>
-        </figure>
-      ))}
+      {questionVisuals(q).map((v) =>
+        v.kind === "sign" ? (
+          <figure className="question-image question-sign" key={v.code}>
+            <SignGraphic
+              sign={signByCode(v.code) ?? { code: v.code, name: v.code, meaning: "", group: "control", variants: [] }}
+            />
+            <figcaption>{v.label}</figcaption>
+          </figure>
+        ) : (
+          <figure className="question-image" key={v.url}>
+            <img src={v.url} alt={v.cap} loading="lazy" />
+            <figcaption>{v.cap}</figcaption>
+          </figure>
+        ),
+      )}
       <div className="answer-options">
         {orders[q.id]?.map((opt, i) => (
           <Button

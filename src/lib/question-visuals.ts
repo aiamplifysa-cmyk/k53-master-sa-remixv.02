@@ -21,7 +21,7 @@ export function signCodesIn(text: string): string[] {
 const packCode = (url: string) => url.match(/k53_sign_([A-Z]+\d+(?:_\d+)?)\.png$/)?.[1]?.replace("_", ".");
 
 export function labelFor(code: string) {
-  const s = signByCode?.(code);
+  const s = signByCode(code);
   return s ? `${GROUP_INFO[s.group].family} sign · ${code} · ${s.name}` : `Sign ${code}`;
 }
 
