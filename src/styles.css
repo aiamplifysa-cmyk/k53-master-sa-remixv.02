@@ -893,7 +893,8 @@ select {
   margin-bottom: 26px;
 }
 .quiz-space h1 {
-  font-size: 24px;
+  font-size: clamp(18px, 2.2vw + 10px, 24px);
+  overflow-wrap: anywhere;
   line-height: 1.5;
   margin: 12px 0 25px;
 }
@@ -901,8 +902,15 @@ select {
   text-align: center;
   margin: 15px 0 25px;
 }
+.question-sign .sign-graphic {
+  width: min(200px, 50vw);
+  height: auto;
+  max-height: 28vh;
+  margin: auto;
+  display: block;
+}
 .question-image img {
-  max-height: 260px;
+  max-height: min(260px, 32vh);
   max-width: 100%;
   object-fit: contain;
   margin: auto;
@@ -1583,3 +1591,12 @@ select {
   }
 }
 @media(max-width:600px){.sidebar>nav:nth-of-type(2){display:flex;gap:5px}.sidebar>nav:nth-of-type(2) .nav-link{width:36px;flex:0 0 36px;overflow:hidden}.sidebar>nav:nth-of-type(2) .nav-link span{display:none}}
+
+.legal-page { max-width: 760px; }
+.legal-page h1 { font-size: clamp(24px, 3vw + 12px, 34px); margin-bottom: 12px; }
+.legal-page h2 { font-size: 18px; margin: 28px 0 8px; }
+.legal-page h3 { font-size: 15px; margin: 18px 0 6px; }
+.legal-page p, .legal-page li { font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
+.legal-page ul { padding-left: 20px; list-style: disc; }
+.legal-page a { color: var(--primary); text-decoration: underline; }
+.legal-page hr { border-color: var(--border); margin: 24px 0; }
