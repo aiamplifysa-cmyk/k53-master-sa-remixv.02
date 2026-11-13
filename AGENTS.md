@@ -34,3 +34,4 @@ use the editor.
 - Render road signs from documented source-chart crops; never substitute generic icons for unverified signs.
 - Keep local study records isolated per learner in IndexedDB; synchronize idempotent batches through authenticated server functions and never cache private server responses.
 - Offline support uses generateSW with one preview-safe registrar; navigation is NetworkFirst and OAuth is excluded.
+- Question pictures come from questionVisuals(): official chart artwork for any sign code in the question replaces pack placeholders, and answer-revealing control tables are hidden — pack images are inaccurate.

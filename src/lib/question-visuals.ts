@@ -20,9 +20,13 @@ export function signCodesIn(text: string): string[] {
 
 const packCode = (url: string) => url.match(/k53_sign_([A-Z]+\d+(?:_\d+)?)\.png$/)?.[1]?.replace("_", ".");
 
+/** Signs whose number changes per site; the chart shows one example value. */
+const VALUE_VARIES: Record<string, string> = { R201: "chart example shows 100 km/h — the number on the sign is the limit" };
+
 export function labelFor(code: string) {
   const s = signByCode(code);
-  return s ? `${GROUP_INFO[s.group].family} sign · ${code} · ${s.name}` : `Sign ${code}`;
+  const base = s ? `${GROUP_INFO[s.group].family} sign · ${code} · ${s.name}` : `Sign ${code}`;
+  return VALUE_VARIES[code] ? `${base} (${VALUE_VARIES[code]})` : base;
 }
 
 /** Pictures to show for a question: official chart artwork first, then supporting pack images.
@@ -39,5 +43,7 @@ export function questionVisuals(q: Question): Visual[] {
     }
     visuals.push({ kind: "image", url: img.url, cap: img.cap });
   }
+  // Pack sign pictures are rough placeholders: drop them once official chart artwork is shown.
+  if (codes.length) return codes.map((code) => ({ kind: "sign" as const, code, label: labelFor(code) }));
   return [...codes.map((code) => ({ kind: "sign" as const, code, label: labelFor(code) })), ...visuals];
 }

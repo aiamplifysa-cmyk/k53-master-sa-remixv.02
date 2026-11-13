@@ -12,6 +12,7 @@ import {
   CloudCheck,
   RotateCcw,
   GraduationCap,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStudy } from "./study-provider";
@@ -83,6 +84,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span>DLTC & resources</span>
             </Link>
           </Button>
+          <Button
+            asChild
+            variant="ghost"
+            className={`nav-link ${path === "/about" ? "nav-active" : ""}`}
+          >
+            <Link to="/about" aria-label="About & legal" title="About & legal">
+              <Info />
+              <span>About & legal</span>
+            </Link>
+          </Button>
         </nav>
         <div className="sidebar-bottom">
           <div className="sa-flag" aria-label="South Africa">
@@ -105,7 +116,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   ? "Practical driving"
                   : path === "/dltc"
                     ? "DLTC & resources"
-                    : "Your account")}
+                    : path === "/about"
+                      ? "About & legal"
+                      : "Your account")}
             </strong>
           </div>
           <div className="header-right">
@@ -127,8 +140,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
         <main className="content">{children}</main>
         <footer className="page-footer">
-          <span>K53 Master SA</span>
-          <span>One lesson closer to the open road.</span>
+          <span>K53 Master SA · AI Amplify SA (Pty) Ltd</span>
+          <span>
+            Not affiliated with the Department of Transport · <Link to="/about">About & legal</Link>
+          </span>
         </footer>
       </div>
     </div>
