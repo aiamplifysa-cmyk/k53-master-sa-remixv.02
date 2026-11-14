@@ -1,18 +1,19 @@
 # K53 build
 - [x] Build eight-category learning dashboard, lessons and road-sign library.
 - [x] Build practice, retry pile and section-scored mock tests.
-- [x] Add learner profiles, sign-in and private batched progress sync.
+- [x] Add learner profiles, sign-in and batched progress sync.
+- [ ] Configure owner-scoped RLS policies for learner tables in Lovable; the checked-in migration enables RLS but declares no policies.
 - [x] Add practical/DLTC guides and supplied references.
-- [x] Add guarded installable offline support.
+- [x] Add guarded installable offline support with a fallback for uncached pages.
 - [x] Verify public desktop/mobile practice and flashcard flows; nine learning/routing tests passed.
 - [ ] Verify signed-in sync and profile creation — needs the first confirmed learner account.
 - [ ] Verify published offline restart — needs publication; preview deliberately disables offline caching.
-- [ ] Reconcile every catalogue variant and explanation against sources — source audit remains, no completeness claim.
+- [ ] Reconcile every catalogue variant and explanation against sources — authoritative catalogue/chart files and the audit report are not in this repository; no completeness claim.
 - [ ] Measure 500 simultaneous users — needs a published target and controlled load-test window.
 - [x] Remix: restore learner database access and profile creation on the new database.
 - [x] Show official sign artwork in questions; hide answer-revealing control tables; add picture checks.
 - [x] Check practice, signs and About at 360–1366 widths (no sideways scrolling).
 - [x] Add About & Legal page linked from the menu and footer.
 - [x] Sign chart audit spreadsheet in Files.
-- [ ] Add 58 possibly-missing master signs (signals S12–S20, temporary TW/TR, guidance diagrams) — needs your go-ahead.
+- [ ] Verify and add any missing master signs (including the 58 candidates from the prior audit) — requires the authoritative catalogue/chart files and candidate list; do not infer codes or artwork.
 - [ ] Fill About & Legal placeholders (support email, CIPC number, paid-features wording) — needs your details.

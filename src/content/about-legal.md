@@ -33,15 +33,17 @@ By downloading, accessing, or using K53 Master SA, you agree to the following te
 
 ---
 
-## 4. Privacy Policy (POPIA Compliant)
-**AI Amplify SA (Pty) Ltd** respects your privacy and is committed to protecting your personal information in accordance with South Africa's **Protection of Personal Information Act (POPIA)**.
+## 4. Privacy Information
+
+This summary describes data handling visible in the current app code. It is not legal advice or a certification of compliance; the publisher should review and complete it before publication.
 
 * **Information We Collect:**
-  * *Study Progress Data:* Your quiz scores, mock test results, and study progress are stored locally on your device (or securely in your user profile, if applicable) to help track your learning.
-  * *Purchase & Diagnostic Data:* If you purchase the app, the app store provides us with an anonymous transaction receipt to unlock access. We may also collect anonymized crash logs and device performance metrics to improve app stability.
-* **How We Use Information:** We use collected data solely to provide app functionality, verify paid access, fix technical bugs, and improve the learning experience. We do **not** sell, rent, or trade your personal information to third parties.
-* **Third-Party Services:** Payments are handled by Apple Inc. or Google LLC under their respective privacy policies. If external links (such as NaTIS) are opened, you leave our app and are subject to those websites' policies.
-* **Your Rights Under POPIA:** You have the right to request access to, correction of, or deletion of any personal information we hold about you.
-* **Contact Information:** For privacy inquiries, support, or legal notices, please contact **AI Amplify SA (Pty) Ltd** at:  
-  * **Email:** [Insert Official Support Email, e.g., support@aiamplifysa.co.za]  
-  * **Company Registration No:** [Insert CIPC Registration Number]
+  * *Study progress:* The app stores quiz attempts, test results, learned categories, and vehicle choice in browser IndexedDB. When you sign in, quiz attempts and test results are synchronized to the app database; the learner profile stores a display name and vehicle choice.
+  * *Account information:* Sign-in and account creation are handled through the configured authentication service. The app also offers Google and Lovable sign-in.
+  * *Error reports:* When the app's error boundary runs, it calls the Lovable error-reporting hook if that hook is available. The fields collected, recipients, and retention period are not established in this repository and should be confirmed by the publisher.
+* **How We Use Information:** Study progress supports the app's learning, account, and synchronization features. No purchase, subscription, or app-store receipt flow is implemented in this codebase; payment-related terms should be added only if such a feature is introduced.
+* **Third-Party Services:** Authenticated progress synchronization uses the app's configured Supabase database. Google and Lovable sign-in are handled by their respective services. If external links (such as NaTIS) are opened, you leave our app and are subject to those websites' policies.
+* **Your Privacy Requests:** To request access to, correction of, or deletion of information associated with an account, contact the publisher using the verified contact details below. The app does not currently provide an in-app account or data deletion control.
+* **Contact Information:** For privacy inquiries, support, or legal notices, contact **AI Amplify SA (Pty) Ltd** using details supplied by the publisher:
+  * **Email:** [Publisher to provide verified support email]
+  * **Company Registration No:** [Publisher to provide verified CIPC registration number]

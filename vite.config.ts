@@ -9,11 +9,12 @@ import { VitePWA } from "vite-plugin-pwa";
 import artwork from "./src/data/sign-artwork.json";
 import references from "./src/data/reference-images.json";
 import questions from "./src/data/questions.json";
+import { isCacheableNavigation, offlineNavigationFallback } from "./src/lib/offline-navigation";
 
 export default defineConfig({
   plugins: [
     VitePWA({
-      outDir: "dist/client",
+      outDir: ".output/public",
       strategies: "generateSW",
       filename: "sw.js",
       registerType: "autoUpdate",
@@ -46,15 +47,12 @@ export default defineConfig({
         navigateFallback: null,
         runtimeCaching: [
           {
-            urlPattern: ({ request, url }) =>
-              request.mode === "navigate" &&
-              !url.pathname.startsWith("/~oauth") &&
-              !url.pathname.startsWith("/auth") &&
-              !url.pathname.startsWith("/reset-password"),
+            urlPattern: isCacheableNavigation,
             handler: "NetworkFirst",
             options: {
               cacheName: "k53-pages",
               networkTimeoutSeconds: 5,
+              plugins: [{ handlerDidError: offlineNavigationFallback }],
               expiration: { maxEntries: 30 },
             },
           },

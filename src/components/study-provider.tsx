@@ -64,21 +64,23 @@ export function StudyProvider({ children }: { children: ReactNode }) {
   const current = useRef(progress),
     identity = useRef<User | null>(null),
     key = useRef("guest"),
-    busy = useRef(false),
+    busy = useRef<number | null>(null),
     generation = useRef(0);
   current.current = progress;
   const send = useServerFn(syncProgress),
     read = useServerFn(loadProgress);
   const persist = (p: Progress) => {
+    const storageKey = key.current;
     current.current = p;
     setProgress(p);
-    void db().then((d) => d.put("progress", p, key.current));
+    void db().then((d) => d.put("progress", p, storageKey));
   };
   const refresh = async () => {
     const account = identity.current;
-    if (!account || !navigator.onLine || busy.current || !ready) return;
-    busy.current = true;
+    if (!account || !navigator.onLine || busy.current === generation.current || !ready) return;
     const g = generation.current;
+    busy.current = g;
+    const isCurrentAccount = () => generation.current === g && identity.current?.id === account.id;
     setSyncState("Syncing…");
     try {
       const d = await db();
@@ -86,15 +88,22 @@ export function StudyProvider({ children }: { children: ReactNode }) {
         attempts: [],
         tests: [],
       };
+      if (!isCurrentAccount()) return;
       const snapshot = current.current;
       const attempts = snapshot.attempts.filter((a) => !saved.attempts.includes(a.id)),
         tests = snapshot.tests.filter((t) => !saved.tests.includes(t.id));
-      for (let i = 0; i < attempts.length; i += 500)
+      for (let i = 0; i < attempts.length; i += 500) {
+        if (!isCurrentAccount()) return;
         await send({ data: { attempts: attempts.slice(i, i + 500), tests: [] } });
-      for (let i = 0; i < tests.length; i += 50)
+        if (!isCurrentAccount()) return;
+      }
+      for (let i = 0; i < tests.length; i += 50) {
+        if (!isCurrentAccount()) return;
         await send({ data: { attempts: [], tests: tests.slice(i, i + 50) } });
+        if (!isCurrentAccount()) return;
+      }
       const remote = await read();
-      if (g !== generation.current) return;
+      if (!isCurrentAccount()) return;
       const latest = current.current;
       const mergedA = Array.from(
         new Map([...remote.attempts, ...latest.attempts].map((a) => [a.id, a])).values(),
@@ -111,9 +120,9 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       );
       setSyncState("All progress saved");
     } catch {
-      if (g === generation.current) setSyncState("Saved here · sync pending");
+      if (isCurrentAccount()) setSyncState("Saved here · sync pending");
     } finally {
-      busy.current = false;
+      if (busy.current === g) busy.current = null;
     }
   };
   useEffect(() => {
@@ -124,6 +133,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     const switchUser = async (next: User | null) => {
       const g = ++generation.current;
       identity.current = next;
+      current.current = initial;
       setReady(false);
       setProgress(initial);
       setName("Learner");
@@ -136,11 +146,13 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       setUser(next);
       setReady(true);
     };
-    void supabase.auth.getUser().then(({ data }) => switchUser(data.user));
+    const initialGeneration = generation.current;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (generation.current === initialGeneration) void switchUser(data.user);
+    });
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
-      if (event === "SIGNED_OUT") void switchUser(null);
-      else void supabase.auth.getUser().then(({ data }) => switchUser(data.user));
+      void switchUser(session?.user ?? null);
     });
     return () => {
       data.subscription.unsubscribe();
@@ -158,6 +170,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(timer);
   }, [user?.id, online, ready]);
   const record = (a: Attempt[], t?: TestRecord) => {
+    if (!ready) return;
     persist({
       ...current.current,
       attempts: [...current.current.attempts, ...a],
@@ -175,9 +188,14 @@ export function StudyProvider({ children }: { children: ReactNode }) {
         name,
         retry: retryIds(progress.attempts),
         record,
-        learn: (cat) =>
-          persist({ ...current.current, learned: [...new Set([...current.current.learned, cat])] }),
-        setVehicle: (vehicle) => persist({ ...current.current, vehicle }),
+        learn: (cat) => {
+          if (!ready) return;
+          persist({ ...current.current, learned: [...new Set([...current.current.learned, cat])] });
+        },
+        setVehicle: (vehicle) => {
+          if (!ready) return;
+          persist({ ...current.current, vehicle });
+        },
         refresh,
       }}
     >

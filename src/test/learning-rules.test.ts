@@ -9,6 +9,7 @@ import {
   SECTION_RULES,
 } from "@/lib/quiz";
 import { refusesOffline } from "@/lib/offline";
+import { isCacheableNavigation, offlineNavigationFallback } from "@/lib/offline-navigation";
 import { CATEGORIES } from "@/data/categories";
 describe("K53 learning rules", () => {
   it("categorizes every imported question into one of eight categories", () => {
@@ -62,5 +63,22 @@ describe("K53 learning rules", () => {
     expect(refusesOffline("k53.example.com", false, false, false)).toBe(false);
     expect(refusesOffline("k53.example.com", false, true, false)).toBe(true);
     expect(refusesOffline("k53.example.com", false, false, true)).toBe(true);
+  });
+  it("uses an explicit fallback for uncached pages but never caches auth navigations", async () => {
+    const navigation = (pathname: string) => ({
+      request: { mode: "navigate" },
+      url: { pathname },
+    });
+    expect(isCacheableNavigation(navigation("/practice"))).toBe(true);
+    expect(isCacheableNavigation(navigation("/auth"))).toBe(false);
+    expect(isCacheableNavigation(navigation("/~oauth/callback"))).toBe(false);
+    expect(isCacheableNavigation(navigation("/reset-password"))).toBe(false);
+    expect(
+      isCacheableNavigation({ request: { mode: "cors" }, url: { pathname: "/practice" } }),
+    ).toBe(false);
+
+    const response = await offlineNavigationFallback();
+    expect(response.headers.get("Content-Type")).toContain("text/html");
+    expect(await response.text()).toContain("You’re offline");
   });
 });

@@ -6,7 +6,7 @@ export const Route = createFileRoute("/about")({
   head: () =>
     pageHead(
       "About & legal",
-      "Who makes K53 Master SA, government affiliation disclaimer, terms of use and POPIA privacy policy.",
+      "Who makes K53 Master SA, government affiliation disclaimer, terms of use and privacy information.",
     ),
   component: About,
 });
