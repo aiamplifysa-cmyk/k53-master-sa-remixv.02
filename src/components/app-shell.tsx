@@ -27,7 +27,7 @@ const nav = [
 ] as const;
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useLocation().pathname;
-  const { user, online, syncState, retry, name } = useStudy();
+  const { user, ready, loadError, online, syncState, retry, name } = useStudy();
   return (
     <div className="app-layout">
       <aside className="sidebar">
@@ -124,7 +124,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="header-right">
             <span className="connection">
               {online ? <CloudCheck size={16} /> : <WifiOff size={16} />}
-              <span>{online ? syncState : "Offline · saved on device"}</span>
+              <span>
+                {!ready
+                  ? loadError
+                    ? "Progress unavailable"
+                    : "Loading progress…"
+                  : online
+                    ? syncState
+                    : "Offline · saved on device"}
+              </span>
             </span>
             <Button asChild variant="ghost" className="account-button">
               <Link to="/auth">
@@ -138,7 +146,22 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Button>
           </div>
         </header>
-        <main className="content">{children}</main>
+        <main className="content" aria-busy={!ready && !loadError}>
+          {ready ? (
+            children
+          ) : (
+            <section className="study-loading" role={loadError ? "alert" : "status"}>
+              <div className="daily-icon">{loadError ? <RotateCcw /> : <BookOpen />}</div>
+              <h1>{loadError ? "Your progress is unavailable" : "Opening your study space"}</h1>
+              <p>{loadError ?? "Restoring progress saved on this device…"}</p>
+              {loadError ? (
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  Reload app
+                </Button>
+              ) : null}
+            </section>
+          )}
+        </main>
         <footer className="page-footer">
           <span>K53 Master SA · AI Amplify SA (Pty) Ltd</span>
           <span>

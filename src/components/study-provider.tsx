@@ -28,6 +28,8 @@ const initial: Progress = { attempts: [], tests: [], learned: [], vehicle: "ligh
 const Context = createContext<{
   progress: Progress;
   user: User | null;
+  ready: boolean;
+  loadError: string | null;
   online: boolean;
   syncState: string;
   name: string;
@@ -39,6 +41,8 @@ const Context = createContext<{
 }>({
   progress: initial,
   user: null,
+  ready: false,
+  loadError: null,
   online: true,
   syncState: "On this device",
   name: "Learner",
@@ -60,7 +64,8 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     [online, setOnline] = useState(true),
     [syncState, setSyncState] = useState("On this device"),
     [name, setName] = useState("Learner"),
-    [ready, setReady] = useState(false);
+    [ready, setReady] = useState(false),
+    [loadError, setLoadError] = useState<string | null>(null);
   const current = useRef(progress),
     identity = useRef<User | null>(null),
     key = useRef("guest"),
@@ -135,20 +140,29 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       identity.current = next;
       current.current = initial;
       setReady(false);
+      setLoadError(null);
+      setUser(null);
       setProgress(initial);
       setName("Learner");
-      key.current = next ? `user:${next.id}` : "guest";
-      const d = await db();
-      const saved = await d.get("progress", key.current);
-      if (g !== generation.current) return;
-      current.current = saved ?? initial;
-      setProgress(saved ?? initial);
-      setUser(next);
-      setReady(true);
+      const storageKey = next ? `user:${next.id}` : "guest";
+      key.current = storageKey;
+      try {
+        const d = await db();
+        const saved = await d.get("progress", storageKey);
+        if (g !== generation.current) return;
+        current.current = saved ?? initial;
+        setProgress(saved ?? initial);
+        setUser(next);
+        setReady(true);
+      } catch (error) {
+        if (g !== generation.current) return;
+        console.error("Could not restore study progress", error);
+        setLoadError("Saved progress could not be loaded. Reload the app to try again.");
+      }
     };
     const initialGeneration = generation.current;
-    void supabase.auth.getUser().then(({ data }) => {
-      if (generation.current === initialGeneration) void switchUser(data.user);
+    void supabase.auth.getSession().then(({ data }) => {
+      if (generation.current === initialGeneration) void switchUser(data.session?.user ?? null);
     });
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
@@ -183,6 +197,8 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       value={{
         progress,
         user,
+        ready,
+        loadError,
         online,
         syncState,
         name,

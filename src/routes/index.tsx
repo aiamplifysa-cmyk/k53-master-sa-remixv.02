@@ -36,15 +36,18 @@ function Dashboard() {
       )
     : 0;
   const next = CATEGORIES.findIndex((_, i) => !progress.learned.includes(i));
+  const allCategoriesExplored = next === -1;
   return (
     <>
       <div className="page-heading">
         <div>
           <span className="eyebrow">LET’S KEEP MOVING</span>
           <h1>
-            {progress.attempts.length
-              ? `Welcome back, ${name}.`
-              : "Your road to ready starts here."}
+            {allCategoriesExplored
+              ? "You’ve explored every category."
+              : progress.attempts.length
+                ? `Welcome back, ${name}.`
+                : "Your road to ready starts here."}
           </h1>
           <p>A little learning today. A lot more confidence tomorrow.</p>
         </div>
@@ -73,10 +76,17 @@ function Dashboard() {
             Take the next turn with confidence.
           </p>
           <Button asChild size="lg">
-            <Link to="/learn">
-              {progress.learned.length ? "Continue learning" : "Start your learning journey"}
-              <ArrowRight />
-            </Link>
+            {allCategoriesExplored ? (
+              <Link to="/practice">
+                Practise all categories
+                <ArrowRight />
+              </Link>
+            ) : (
+              <Link to="/learn" search={{ category: next }}>
+                {progress.learned.length ? "Continue learning" : "Start your learning journey"}
+                <ArrowRight />
+              </Link>
+            )}
           </Button>
         </div>
         <div className="road-caption">

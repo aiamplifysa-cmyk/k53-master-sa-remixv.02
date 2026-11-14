@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
         session: { user: { id: string; user_metadata: Record<string, unknown> } | null },
       ) => void)
     | null,
-  getUser: vi.fn(),
+  getSession: vi.fn(),
   loadProgress: vi.fn(),
   onAuthStateChange: vi.fn(),
   openDB: vi.fn(),
@@ -22,7 +22,7 @@ vi.mock("@tanstack/react-start", () => ({ useServerFn: (fn: unknown) => fn }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
-      getUser: mocks.getUser,
+      getSession: mocks.getSession,
       onAuthStateChange: mocks.onAuthStateChange,
     },
   },
@@ -80,7 +80,7 @@ describe("StudyProvider account isolation", () => {
       openCount += 1;
       return openCount === 2 ? pendingOpen : Promise.resolve(database);
     });
-    mocks.getUser.mockResolvedValue({ data: { user: userA } });
+    mocks.getSession.mockResolvedValue({ data: { session: { user: userA } } });
     mocks.onAuthStateChange.mockImplementation((listener) => {
       mocks.authListener = listener;
       return { data: { subscription: { unsubscribe: vi.fn() } } };
