@@ -30,6 +30,7 @@ const Context = createContext<{
   user: User | null;
   ready: boolean;
   loadError: string | null;
+  cloudError: string | null;
   online: boolean;
   syncState: string;
   name: string;
@@ -43,6 +44,7 @@ const Context = createContext<{
   user: null,
   ready: false,
   loadError: null,
+  cloudError: null,
   online: true,
   syncState: "On this device",
   name: "Learner",
@@ -65,7 +67,8 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     [syncState, setSyncState] = useState("On this device"),
     [name, setName] = useState("Learner"),
     [ready, setReady] = useState(false),
-    [loadError, setLoadError] = useState<string | null>(null);
+    [loadError, setLoadError] = useState<string | null>(null),
+    [cloudError, setCloudError] = useState<string | null>(null);
   const current = useRef(progress),
     identity = useRef<User | null>(null),
     key = useRef("guest"),
@@ -161,15 +164,37 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       }
     };
     const initialGeneration = generation.current;
-    void supabase.auth.getSession().then(({ data }) => {
-      if (generation.current === initialGeneration) void switchUser(data.session?.user ?? null);
-    });
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
-      void switchUser(session?.user ?? null);
-    });
+    const reportCloudError = (error: unknown) => {
+      if (generation.current !== initialGeneration) return;
+      console.error("Could not initialize cloud sync", error);
+      setCloudError("Account sync is unavailable. You can still study on this device.");
+      void switchUser(null);
+    };
+    let unsubscribe = () => {};
+    try {
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
+        setCloudError(null);
+        void switchUser(session?.user ?? null);
+      });
+      unsubscribe = () => data.subscription.unsubscribe();
+      void supabase.auth
+        .getSession()
+        .then(({ data: sessionData, error }) => {
+          if (generation.current !== initialGeneration) return;
+          if (error) {
+            reportCloudError(error);
+            return;
+          }
+          setCloudError(null);
+          void switchUser(sessionData.session?.user ?? null);
+        })
+        .catch(reportCloudError);
+    } catch (error) {
+      reportCloudError(error);
+    }
     return () => {
-      data.subscription.unsubscribe();
+      unsubscribe();
       window.removeEventListener("online", update);
       window.removeEventListener("offline", update);
     };
@@ -199,6 +224,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
         user,
         ready,
         loadError,
+        cloudError,
         online,
         syncState,
         name,

@@ -33,10 +33,12 @@ vi.mock("@/lib/progress.functions", () => ({
 }));
 
 function Probe() {
-  const { user, record } = useStudy();
+  const { user, ready, cloudError, record } = useStudy();
   return (
     <>
       <span>{user?.id ?? "signed out"}</span>
+      <span data-testid="ready">{ready ? "ready" : "loading"}</span>
+      {cloudError ? <span role="status">{cloudError}</span> : null}
       <button
         onClick={() =>
           record([
@@ -58,6 +60,7 @@ function Probe() {
 
 describe("StudyProvider account isolation", () => {
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.clearAllMocks();
   });
 
@@ -112,5 +115,29 @@ describe("StudyProvider account isolation", () => {
     expect(puts).toHaveLength(1);
     expect(puts[0]?.key).toBe("user:account-a");
     expect(puts[0]?.key).not.toBe("user:account-b");
+  });
+
+  it("keeps local study available when Supabase is not configured", async () => {
+    const database = {
+      get: vi.fn(async () => undefined),
+      put: vi.fn(async () => {}),
+    };
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.onAuthStateChange.mockImplementation(() => {
+      throw new Error("Missing Supabase environment variables");
+    });
+    mocks.openDB.mockResolvedValue(database);
+
+    render(
+      <StudyProvider>
+        <Probe />
+      </StudyProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("ready")).toHaveTextContent("ready"));
+    expect(screen.getByText("signed out")).toBeTruthy();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Account sync is unavailable. You can still study on this device.",
+    );
   });
 });

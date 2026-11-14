@@ -27,7 +27,7 @@ const nav = [
 ] as const;
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useLocation().pathname;
-  const { user, ready, loadError, online, syncState, retry, name } = useStudy();
+  const { user, ready, loadError, cloudError, online, syncState, retry, name } = useStudy();
   return (
     <div className="app-layout">
       <aside className="sidebar">
@@ -129,9 +129,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                   ? loadError
                     ? "Progress unavailable"
                     : "Loading progress…"
-                  : online
-                    ? syncState
-                    : "Offline · saved on device"}
+                  : cloudError
+                    ? "Cloud sync unavailable"
+                    : online
+                      ? syncState
+                      : "Offline · saved on device"}
               </span>
             </span>
             <Button asChild variant="ghost" className="account-button">
@@ -148,7 +150,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
         <main className="content" aria-busy={!ready && !loadError}>
           {ready ? (
-            children
+            <>
+              {cloudError ? (
+                <p className="cloud-warning" role="status">
+                  {cloudError}
+                </p>
+              ) : null}
+              {children}
+            </>
           ) : (
             <section className="study-loading" role={loadError ? "alert" : "status"}>
               <div className="daily-icon">{loadError ? <RotateCcw /> : <BookOpen />}</div>

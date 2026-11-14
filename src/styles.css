@@ -408,6 +408,15 @@ button {
   color: var(--muted-foreground);
   font-size: 13px;
 }
+.cloud-warning {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
 .page-heading {
   display: flex;
   align-items: center;
