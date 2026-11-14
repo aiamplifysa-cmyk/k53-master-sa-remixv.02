@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { openDB } from "idb";
 import type { User } from "@supabase/supabase-js";
@@ -77,6 +77,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
   current.current = progress;
   const send = useServerFn(syncProgress),
     read = useServerFn(loadProgress);
+  const retry = useMemo(() => retryIds(progress.attempts), [progress.attempts]);
   const persist = (p: Progress) => {
     const storageKey = key.current;
     current.current = p;
@@ -98,8 +99,10 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       };
       if (!isCurrentAccount()) return;
       const snapshot = current.current;
-      const attempts = snapshot.attempts.filter((a) => !saved.attempts.includes(a.id)),
-        tests = snapshot.tests.filter((t) => !saved.tests.includes(t.id));
+      const savedAttemptIds = new Set((saved.attempts ?? []) as string[]);
+      const savedTestIds = new Set((saved.tests ?? []) as string[]);
+      const attempts = snapshot.attempts.filter((a) => !savedAttemptIds.has(a.id)),
+        tests = snapshot.tests.filter((t) => !savedTestIds.has(t.id));
       for (let i = 0; i < attempts.length; i += 500) {
         if (!isCurrentAccount()) return;
         await send({ data: { attempts: attempts.slice(i, i + 500), tests: [] } });
@@ -217,32 +220,120 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     });
     if (user && online) void refresh();
   };
-  return (
-    <Context.Provider
-      value={{
-        progress,
-        user,
-        ready,
-        loadError,
-        cloudError,
-        online,
-        syncState,
-        name,
-        retry: retryIds(progress.attempts),
-        record,
-        learn: (cat) => {
-          if (!ready) return;
-          persist({ ...current.current, learned: [...new Set([...current.current.learned, cat])] });
-        },
-        setVehicle: (vehicle) => {
-          if (!ready) return;
-          persist({ ...current.current, vehicle });
-        },
-        refresh,
-      }}
-    >
-      {children}
-    </Context.Provider>
+  const value = useMemo(
+    () => ({
+      progress,
+      user,
+      ready,
+      loadError,
+      cloudError,
+      online,
+      syncState,
+      name,
+      retry,
+      record,
+      learn: (cat) => {
+        if (!ready) return;
+        persist({ ...current.current, learned: [...new Set([...current.current.learned, cat])] });
+      },
+      setVehicle: (vehicle) => {
+        if (!ready) return;
+        persist({ ...current.current, vehicle });
+      },
+      refresh,
+    }),
+    [cloudError, loadError, name, online, progress, ready, retry, syncState, user],
   );
+  return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 export const useStudy = () => useContext(Context);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+after fix
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

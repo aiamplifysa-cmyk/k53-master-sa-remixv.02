@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -29,14 +30,34 @@ export const Route = createFileRoute("/")({
 });
 function Dashboard() {
   const { progress, name } = useStudy();
-  const answered = new Set(progress.attempts.map((a) => a.question_id)).size;
-  const accuracy = progress.attempts.length
-    ? Math.round(
-        (progress.attempts.filter((a) => a.correct).length / progress.attempts.length) * 100,
-      )
-    : 0;
-  const next = CATEGORIES.findIndex((_, i) => !progress.learned.includes(i));
+  const { answered, accuracy } = useMemo(() => {
+    const answered = new Set(progress.attempts.map((a) => a.question_id)).size;
+    const accuracy = progress.attempts.length
+      ? Math.round(
+          (progress.attempts.filter((a) => a.correct).length / progress.attempts.length) * 100,
+        )
+      : 0;
+    return { answered, accuracy };
+  }, [progress.attempts]);
+  const next = useMemo(
+    () => CATEGORIES.findIndex((_, i) => !progress.learned.includes(i)),
+    [progress.learned],
+  );
   const allCategoriesExplored = next === -1;
+  const questionCountByCat = useMemo(() => {
+    const counts = new Map<number, number>();
+    for (const question of QUESTIONS) {
+      counts.set(question.cat, (counts.get(question.cat) ?? 0) + 1);
+    }
+    return counts;
+  }, []);
+  const attemptsByCat = useMemo(() => {
+    const counts = new Map<number, number>();
+    for (const attempt of progress.attempts) {
+      counts.set(attempt.category, (counts.get(attempt.category) ?? 0) + 1);
+    }
+    return counts;
+  }, [progress.attempts]);
   return (
     <>
       <div className="page-heading">
@@ -145,7 +166,7 @@ function Dashboard() {
           <div className="category-grid">
             {CATEGORIES.map((cat, i) => {
               const learned = progress.learned.includes(i);
-              const attempts = progress.attempts.filter((a) => a.category === i);
+              const attempts = attemptsByCat.get(i) ?? 0;
               return (
                 <Link
                   to="/learn"
@@ -167,9 +188,9 @@ function Dashboard() {
                   <h3>{cat.name}</h3>
                   <p>{cat.description}</p>
                   <div className="category-bottom">
-                    <span>{QUESTIONS.filter((q) => q.cat === i).length} questions</span>
+                    <span>{questionCountByCat.get(i) ?? 0} questions</span>
                     <span>
-                      {attempts.length ? "In progress" : "Explore"}
+                      {attempts ? "In progress" : "Explore"}
                       <ArrowRight size={15} />
                     </span>
                   </div>
@@ -290,3 +311,34 @@ function Stat({
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

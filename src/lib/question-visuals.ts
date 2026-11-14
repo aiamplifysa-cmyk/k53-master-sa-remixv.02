@@ -11,9 +11,13 @@ const CODE_RE = /\(?\b(R|W|GE|IN|TW|TR|RM|RTM|WM|GM|S|GD)\)?\s?(\d+(?:\.\d+)?)\b
 /** Official sign codes named in the question text that have verified chart artwork. */
 export function signCodesIn(text: string): string[] {
   const out: string[] = [];
+  const seen = new Set<string>();
   for (const m of text.matchAll(CODE_RE)) {
     const code = `${m[1]}${m[2]}`;
-    if (artworkFor(code) && !out.includes(code)) out.push(code);
+    if (artworkFor(code) && !seen.has(code)) {
+      seen.add(code);
+      out.push(code);
+    }
   }
   return out;
 }
@@ -33,12 +37,16 @@ export function labelFor(code: string) {
  *  Vehicle-control component tables are hidden because they list the answer. */
 export function questionVisuals(q: Question): Visual[] {
   const codes = signCodesIn(q.q);
+  const seen = new Set(codes);
   const visuals: Visual[] = [];
   for (const img of q.images ?? []) {
     if (/numbered vehicle controls/i.test(img.cap)) continue;
     const c = packCode(img.url);
     if (c && artworkFor(c)) {
-      if (!codes.includes(c)) codes.push(c);
+      if (!seen.has(c)) {
+        seen.add(c);
+        codes.push(c);
+      }
       continue;
     }
     visuals.push({ kind: "image", url: img.url, cap: img.cap });
@@ -47,3 +55,18 @@ export function questionVisuals(q: Question): Visual[] {
   if (codes.length) return codes.map((code) => ({ kind: "sign" as const, code, label: labelFor(code) }));
   return [...codes.map((code) => ({ kind: "sign" as const, code, label: labelFor(code) })), ...visuals];
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
