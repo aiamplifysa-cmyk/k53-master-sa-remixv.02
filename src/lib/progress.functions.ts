@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 const attempt = z.object({
   id: z.string().uuid(),
   question_id: z.string().max(100),
@@ -8,12 +9,16 @@ const attempt = z.object({
   correct: z.boolean(),
   created_at: z.string().datetime(),
 });
+
 const test = z.object({
   id: z.string().uuid(),
   mode: z.string().max(30),
   results: z.record(z.unknown()),
   created_at: z.string().datetime(),
 });
+
+const loadInput = z.object({ since: z.string().datetime().optional() }).default({});
+
 export const syncProgress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -27,6 +32,7 @@ export const syncProgress = createServerFn({ method: "POST" })
       );
       if (error) throw new Error("Could not sync answers");
     }
+
     if (data.tests.length) {
       const { error } = await context.supabase.from("test_attempts").upsert(
         data.tests.map((t) => ({ ...t, user_id: context.userId, results: t.results as never })),
@@ -34,29 +40,54 @@ export const syncProgress = createServerFn({ method: "POST" })
       );
       if (error) throw new Error("Could not sync tests");
     }
+
     return { saved: true };
   });
+
 export const loadProgress = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input: unknown) => loadInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const since = data.since;
+    const attemptsQuery = context.supabase
+      .from("question_attempts")
+      .select("id,question_id,category,correct,created_at")
+      .eq("user_id", context.userId)
+      .order("created_at");
+
+    const testsQuery = context.supabase
+      .from("test_attempts")
+      .select("id,mode,results,created_at")
+      .eq("user_id", context.userId)
+      .order("created_at");
+
+    if (since) {
+      attemptsQuery.gte("created_at", since);
+      testsQuery.gte("created_at", since);
+    }
+
     const [{ data: attempts, error: a }, { data: tests, error: t }, { data: profile }] =
       await Promise.all([
-        context.supabase
-          .from("question_attempts")
-          .select("id,question_id,category,correct,created_at")
-          .eq("user_id", context.userId)
-          .order("created_at"),
-        context.supabase
-          .from("test_attempts")
-          .select("id,mode,results,created_at")
-          .eq("user_id", context.userId)
-          .order("created_at"),
+        attemptsQuery,
+        testsQuery,
         context.supabase
           .from("profiles")
           .select("display_name,vehicle")
           .eq("id", context.userId)
           .maybeSingle(),
       ]);
+
     if (a || t) throw new Error("Could not read saved progress");
     return { attempts: attempts ?? [], tests: tests ?? [], profile };
   });
+
+
+
+
+
+
+
+
+
+
+

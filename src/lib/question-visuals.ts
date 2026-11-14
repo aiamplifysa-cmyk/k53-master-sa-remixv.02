@@ -51,7 +51,6 @@ export function questionVisuals(q: Question): Visual[] {
     }
     visuals.push({ kind: "image", url: img.url, cap: img.cap });
   }
-  // Pack sign pictures are rough placeholders: drop them once official chart artwork is shown.
   if (codes.length) return codes.map((code) => ({ kind: "sign" as const, code, label: labelFor(code) }));
   return [...codes.map((code) => ({ kind: "sign" as const, code, label: labelFor(code) })), ...visuals];
 }

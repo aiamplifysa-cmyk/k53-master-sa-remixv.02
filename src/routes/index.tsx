@@ -20,6 +20,7 @@ import { QUESTIONS } from "@/lib/quiz";
 import { SIGNS } from "@/data/signs";
 import { pageHead } from "@/lib/metadata";
 import road from "@/assets/study-road.jpg";
+
 export const Route = createFileRoute("/")({
   head: () =>
     pageHead(
@@ -28,8 +29,10 @@ export const Route = createFileRoute("/")({
     ),
   component: Dashboard,
 });
+
 function Dashboard() {
   const { progress, name } = useStudy();
+
   const { answered, accuracy } = useMemo(() => {
     const answered = new Set(progress.attempts.map((a) => a.question_id)).size;
     const accuracy = progress.attempts.length
@@ -39,11 +42,13 @@ function Dashboard() {
       : 0;
     return { answered, accuracy };
   }, [progress.attempts]);
+
   const next = useMemo(
     () => CATEGORIES.findIndex((_, i) => !progress.learned.includes(i)),
     [progress.learned],
   );
   const allCategoriesExplored = next === -1;
+
   const questionCountByCat = useMemo(() => {
     const counts = new Map<number, number>();
     for (const question of QUESTIONS) {
@@ -51,6 +56,7 @@ function Dashboard() {
     }
     return counts;
   }, []);
+
   const attemptsByCat = useMemo(() => {
     const counts = new Map<number, number>();
     for (const attempt of progress.attempts) {
@@ -58,6 +64,7 @@ function Dashboard() {
     }
     return counts;
   }, [progress.attempts]);
+
   return (
     <>
       <div className="page-heading">
@@ -286,9 +293,11 @@ function Dashboard() {
     </>
   );
 }
+
 function MapPinIcon() {
   return <Signpost size={13} />;
 }
+
 function Stat({
   icon: Icon,
   label,
@@ -311,6 +320,31 @@ function Stat({
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
