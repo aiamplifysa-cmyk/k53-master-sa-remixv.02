@@ -7,6 +7,7 @@
 - [x] Merge guest study progress into the first signed-in account on this device.
 - [x] Add practical/DLTC guides and supplied references.
 - [x] Add guarded installable offline support with a fallback for uncached pages.
+- [x] Preview the production Cloudflare Worker locally with Wrangler; all app routes return successfully.
 - [x] Run the local test suite; 33 tests passed. Signed-in sync still needs verification against the deployed Supabase project.
 - [ ] Verify signed-in sync and profile creation — needs the first confirmed learner account.
 - [ ] Verify published offline restart — needs publication; preview deliberately disables offline caching.
@@ -17,5 +18,5 @@
 - [x] Check practice, signs and About at 360–1366 widths (no sideways scrolling).
 - [x] Add About & Legal page linked from the menu and footer.
 - [x] Sign chart audit spreadsheet in Files.
-- [ ] Verify and add any missing master signs (including the 58 candidates from the prior audit) — requires the authoritative catalogue/chart files and candidate list; do not infer codes or artwork.
+- [ ] Verify and add missing master signs — source PDFs are Lovable-managed assets, but the prior 58-candidate audit list/report is not in this repository; do not infer codes or artwork.
 - [ ] Fill About & Legal publisher contact placeholders (verified support email and CIPC number) — needs publisher-provided details.
