@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useStudy } from "./study-provider";
 import type { ReactNode } from "react";
-import { getAdminRole } from "@/lib/admin-role";
+import { mayRequestAdminAccess } from "@/lib/admin-role";
 const nav = [
   { to: "/", label: "My learning", icon: LayoutDashboard },
   { to: "/learn", label: "Learn by category", icon: BookOpen },
@@ -97,7 +97,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span>About & legal</span>
             </Link>
           </Button>
-          {getAdminRole({ app_metadata: user?.app_metadata }) ? (
+          {mayRequestAdminAccess({ email: user?.email, app_metadata: user?.app_metadata }) ? (
             <Button
               asChild
               variant="ghost"

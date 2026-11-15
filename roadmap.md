@@ -4,6 +4,8 @@
 - [x] Build practice, retry pile and section-scored mock tests.
 - [x] Add learner profiles, sign-in and batched progress sync.
 - [x] Add a server-guarded admin workspace shell; management actions remain disabled until backend storage and policies are configured.
+- [x] Restrict the admin portal to OTP-verified owner/admin emails and allow admins to grant trusted admin roles.
+- [ ] Configure the Supabase Magic Link email template to send `{{ .Token }}` codes and ensure `SUPABASE_SERVICE_ROLE_KEY` is available only as a server secret.
 - [ ] Configure owner-scoped RLS policies for learner tables in Lovable; the checked-in migration enables RLS but declares no policies.
 - [x] Merge guest study progress into the first signed-in account on this device.
 - [x] Add practical/DLTC guides and supplied references.
