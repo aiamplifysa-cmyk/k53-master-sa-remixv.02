@@ -25,6 +25,23 @@ interface Progress {
   vehicle: Vehicle;
 }
 const initial: Progress = { attempts: [], tests: [], learned: [], vehicle: "light" };
+const isVehicle = (value: string | null | undefined): value is Vehicle =>
+  value === "light" || value === "heavy" || value === "motorcycle";
+function mergeProgress(account: Progress | undefined, guest: Progress): Progress {
+  const existing = account ?? initial;
+  return {
+    attempts: Array.from(
+      new Map(
+        [...guest.attempts, ...existing.attempts].map((attempt) => [attempt.id, attempt]),
+      ).values(),
+    ),
+    tests: Array.from(
+      new Map([...guest.tests, ...existing.tests].map((test) => [test.id, test])).values(),
+    ),
+    learned: [...new Set([...guest.learned, ...existing.learned])],
+    vehicle: account?.vehicle ?? guest.vehicle,
+  };
+}
 const Context = createContext<{
   progress: Progress;
   user: User | null;
@@ -75,6 +92,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
   const current = useRef(progress),
     identity = useRef<User | null>(null),
     key = useRef("guest"),
+    vehicleEdited = useRef(false),
     busy = useRef<number | null>(null),
     generation = useRef(0);
   current.current = progress;
@@ -134,7 +152,11 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       const mergedT = Array.from(
         new Map([...remote.tests, ...latest.tests].map((t) => [t.id, t as TestRecord])).values(),
       );
-      persist({ ...latest, attempts: mergedA, tests: mergedT });
+      const vehicle =
+        !vehicleEdited.current && isVehicle(remote.profile?.vehicle)
+          ? remote.profile.vehicle
+          : latest.vehicle;
+      persist({ ...latest, attempts: mergedA, tests: mergedT, vehicle });
       setName(remote.profile?.display_name || account.user_metadata?.["display_name"] || "Learner");
       await d.put(
         "progress",
@@ -163,11 +185,29 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setProgress(initial);
       setName("Learner");
+      vehicleEdited.current = false;
       const storageKey = next ? `user:${next.id}` : "guest";
       key.current = storageKey;
       try {
         const d = await db();
-        const saved = await d.get("progress", storageKey);
+        let saved: Progress | undefined;
+        if (next) {
+          const tx = d.transaction("progress", "readwrite");
+          const [accountProgress, guestProgress] = await Promise.all([
+            tx.store.get(storageKey),
+            tx.store.get("guest"),
+          ]);
+          if (guestProgress) {
+            saved = mergeProgress(accountProgress, guestProgress);
+            await tx.store.put(saved, storageKey);
+            await tx.store.delete("guest");
+          } else {
+            saved = accountProgress;
+          }
+          await tx.done;
+        } else {
+          saved = await d.get("progress", storageKey);
+        }
         if (g !== generation.current) return;
         current.current = saved ?? initial;
         setProgress(saved ?? initial);
@@ -253,6 +293,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
         },
         setVehicle: (vehicle) => {
           if (!ready) return;
+          vehicleEdited.current = true;
           persist({ ...current.current, vehicle });
         },
         refresh,

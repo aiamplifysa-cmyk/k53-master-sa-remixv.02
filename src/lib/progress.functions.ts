@@ -1,24 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-const attempt = z.object({
-  id: z.string().uuid(),
-  question_id: z.string().max(100),
-  category: z.number().int().min(0).max(7),
-  correct: z.boolean(),
-  created_at: z.string().datetime(),
-});
-const test = z.object({
-  id: z.string().uuid(),
-  mode: z.string().max(30),
-  results: z.record(z.unknown()),
-  created_at: z.string().datetime(),
-});
+import { syncProgressSchema } from "@/lib/progress.schemas";
 export const syncProgress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ attempts: z.array(attempt).max(500), tests: z.array(test).max(50) }).parse(input),
-  )
+  .validator((input: unknown) => syncProgressSchema.parse(input))
   .handler(async ({ data, context }) => {
     if (data.attempts.length) {
       const { error } = await context.supabase.from("question_attempts").upsert(

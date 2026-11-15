@@ -156,7 +156,10 @@ export function Auth() {
                 ? "Let’s get you back on the road."
                 : "Welcome to your learning space."}
           </h1>
-          <p>Study without an account, or sign in to keep your progress across devices.</p>
+          <p>
+            Study without an account, or sign in to sync quiz attempts and test results. Lesson
+            completion stays on this device; save your profile to sync your name and vehicle.
+          </p>
         </div>
       </div>
       <div className="auth-panel">

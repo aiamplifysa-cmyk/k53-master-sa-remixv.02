@@ -33,11 +33,12 @@ vi.mock("@/lib/progress.functions", () => ({
 }));
 
 function Probe() {
-  const { user, ready, cloudError, storageError, record } = useStudy();
+  const { user, ready, cloudError, storageError, progress, record } = useStudy();
   return (
     <>
       <span>{user?.id ?? "signed out"}</span>
       <span data-testid="ready">{ready ? "ready" : "loading"}</span>
+      <span data-testid="vehicle">{progress.vehicle}</span>
       {cloudError ? <span role="status">{cloudError}</span> : null}
       {storageError ? <span role="alert">{storageError}</span> : null}
       <button
@@ -74,6 +75,14 @@ describe("StudyProvider account isolation", () => {
       put: vi.fn(async (_store: string, value: unknown, key: string) => {
         puts.push({ value, key });
       }),
+      transaction: vi.fn(() => ({
+        store: {
+          get: vi.fn(async () => undefined),
+          put: vi.fn(async () => {}),
+          delete: vi.fn(async () => {}),
+        },
+        done: Promise.resolve(),
+      })),
     };
     let resolvePendingOpen: ((value: typeof database) => void) | undefined;
     const pendingOpen = new Promise<typeof database>((resolve) => {
@@ -167,5 +176,120 @@ describe("StudyProvider account isolation", () => {
       "Progress could not be saved on this device.",
     );
     consoleError.mockRestore();
+  });
+
+  it("moves guest progress into the signed-in account and preserves its vehicle preference", async () => {
+    const guestProgress = {
+      attempts: [
+        {
+          id: "00000000-0000-4000-8000-000000000001",
+          question_id: "guest-question",
+          category: 0,
+          correct: true,
+          created_at: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+      tests: [],
+      learned: [0, 2],
+      vehicle: "heavy" as const,
+    };
+    const accountProgress = {
+      attempts: [
+        {
+          id: "00000000-0000-4000-8000-000000000002",
+          question_id: "account-question",
+          category: 1,
+          correct: false,
+          created_at: "2026-01-02T00:00:00.000Z",
+        },
+      ],
+      tests: [],
+      learned: [1],
+      vehicle: "motorcycle" as const,
+    };
+    const entries = new Map<string, unknown>([
+      ["guest", guestProgress],
+      ["user:account-a", accountProgress],
+    ]);
+    const database = {
+      get: vi.fn(async (_store: string, key: string) => entries.get(key)),
+      put: vi.fn(async (_store: string, value: unknown, key: string) => {
+        entries.set(key, value);
+      }),
+      transaction: vi.fn(() => ({
+        store: {
+          get: vi.fn(async (key: string) => entries.get(key)),
+          put: vi.fn(async (value: unknown, key: string) => {
+            entries.set(key, value);
+          }),
+          delete: vi.fn(async (key: string) => {
+            entries.delete(key);
+          }),
+        },
+        done: Promise.resolve(),
+      })),
+    };
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: { id: "account-a", user_metadata: {} } } },
+    });
+    mocks.onAuthStateChange.mockImplementation(() => ({
+      data: { subscription: { unsubscribe: vi.fn() } },
+    }));
+    mocks.openDB.mockResolvedValue(database);
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+
+    render(
+      <StudyProvider>
+        <Probe />
+      </StudyProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText("account-a")).toBeTruthy());
+    await waitFor(() => expect(entries.has("guest")).toBe(false));
+    expect(entries.get("user:account-a")).toMatchObject({
+      attempts: expect.arrayContaining([
+        expect.objectContaining({ question_id: "guest-question" }),
+        expect.objectContaining({ question_id: "account-question" }),
+      ]),
+      learned: [0, 2, 1],
+      vehicle: "motorcycle",
+    });
+  });
+
+  it("restores a saved vehicle preference from the account profile", async () => {
+    const database = {
+      get: vi.fn(async () => undefined),
+      put: vi.fn(async () => {}),
+      transaction: vi.fn(() => ({
+        store: {
+          get: vi.fn(async () => undefined),
+          put: vi.fn(async () => {}),
+          delete: vi.fn(async () => {}),
+        },
+        done: Promise.resolve(),
+      })),
+    };
+    mocks.getSession.mockResolvedValue({
+      data: { session: { user: { id: "account-a", user_metadata: {} } } },
+    });
+    mocks.onAuthStateChange.mockImplementation(() => ({
+      data: { subscription: { unsubscribe: vi.fn() } },
+    }));
+    mocks.openDB.mockResolvedValue(database);
+    mocks.loadProgress.mockResolvedValue({
+      attempts: [],
+      tests: [],
+      profile: { display_name: "Learner", vehicle: "heavy" },
+    });
+    mocks.syncProgress.mockResolvedValue({ saved: true });
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
+
+    render(
+      <StudyProvider>
+        <Probe />
+      </StudyProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("vehicle")).toHaveTextContent("heavy"));
   });
 });

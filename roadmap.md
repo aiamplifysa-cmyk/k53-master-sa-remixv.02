@@ -1,12 +1,13 @@
 # K53 build
+
 - [x] Build eight-category learning dashboard, lessons and road-sign library.
 - [x] Build practice, retry pile and section-scored mock tests.
 - [x] Add learner profiles, sign-in and batched progress sync.
 - [ ] Configure owner-scoped RLS policies for learner tables in Lovable; the checked-in migration enables RLS but declares no policies.
-- [ ] Preserve guest progress when a learner signs in; local progress currently stays in the guest namespace.
+- [x] Merge guest study progress into the first signed-in account on this device.
 - [x] Add practical/DLTC guides and supplied references.
 - [x] Add guarded installable offline support with a fallback for uncached pages.
-- [x] Verify public desktop/mobile practice and flashcard flows; nine learning/routing tests passed.
+- [x] Run the local test suite; 33 tests passed. Signed-in sync still needs verification against the deployed Supabase project.
 - [ ] Verify signed-in sync and profile creation — needs the first confirmed learner account.
 - [ ] Verify published offline restart — needs publication; preview deliberately disables offline caching.
 - [ ] Reconcile every catalogue variant and explanation against sources — authoritative catalogue/chart files and the audit report are not in this repository; no completeness claim.
@@ -17,4 +18,4 @@
 - [x] Add About & Legal page linked from the menu and footer.
 - [x] Sign chart audit spreadsheet in Files.
 - [ ] Verify and add any missing master signs (including the 58 candidates from the prior audit) — requires the authoritative catalogue/chart files and candidate list; do not infer codes or artwork.
-- [ ] Fill About & Legal placeholders (support email, CIPC number, paid-features wording) — needs your details.
+- [ ] Fill About & Legal publisher contact placeholders (verified support email and CIPC number) — needs publisher-provided details.
