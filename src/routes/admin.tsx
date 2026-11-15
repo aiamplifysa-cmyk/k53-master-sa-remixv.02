@@ -1,0 +1,328 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  Activity,
+  ArrowUpRight,
+  BookOpen,
+  FileText,
+  LifeBuoy,
+  LockKeyhole,
+  Settings2,
+  ShieldAlert,
+  Users,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getAdminAccess } from "@/lib/admin.functions";
+import { getAdminRole } from "@/lib/admin-role";
+import { pageHead } from "@/lib/metadata";
+import { useStudy } from "@/components/study-provider";
+
+type AdminAccess =
+  { status: "checking" } | { status: "ready"; role: "owner" | "admin" } | { status: "unavailable" };
+
+const sections = [
+  { id: "overview", label: "Overview", icon: Activity },
+  { id: "access", label: "Access", icon: Users },
+  { id: "content", label: "Content & resources", icon: BookOpen },
+  { id: "settings", label: "Feature settings", icon: Settings2 },
+  { id: "legal", label: "Legal documents", icon: FileText },
+  { id: "support", label: "Email & tracking", icon: LifeBuoy },
+] as const;
+
+type SectionId = (typeof sections)[number]["id"];
+
+function isAdmin(role: unknown): role is "owner" | "admin" {
+  return role === "owner" || role === "admin";
+}
+
+export const Route = createFileRoute("/admin")({
+  head: () =>
+    pageHead("Administration", "Manage access, resources and settings for K53 Master SA."),
+  component: AdminPage,
+});
+
+function AdminPage() {
+  const { ready, user } = useStudy();
+  const userId = user?.id;
+  const checkAdminAccess = useServerFn(getAdminAccess);
+  const [access, setAccess] = useState<AdminAccess>({ status: "checking" });
+  const [section, setSection] = useState<SectionId>("overview");
+
+  useEffect(() => {
+    if (!ready) return;
+    if (!userId) {
+      setAccess({ status: "unavailable" });
+      return;
+    }
+
+    let active = true;
+    void checkAdminAccess()
+      .then(({ role }) => {
+        if (active)
+          setAccess(isAdmin(role) ? { status: "ready", role } : { status: "unavailable" });
+      })
+      .catch((error: unknown) => {
+        console.error("Could not verify admin access", error);
+        if (active) setAccess({ status: "unavailable" });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [checkAdminAccess, ready, userId]);
+
+  if (access.status === "checking") {
+    return (
+      <section className="mx-auto max-w-2xl py-10" role="status">
+        <h1 className="text-2xl font-semibold">Checking admin access</h1>
+        <p className="mt-2 text-muted-foreground">Verifying your signed-in account permissions…</p>
+      </section>
+    );
+  }
+
+  if (access.status !== "ready") {
+    return (
+      <section className="mx-auto max-w-2xl py-10" aria-labelledby="admin-access-title">
+        <div className="flex items-start gap-4 rounded-lg border bg-card p-6">
+          <ShieldAlert className="mt-1 shrink-0 text-destructive" aria-hidden="true" />
+          <div className="space-y-3">
+            <h1 id="admin-access-title" className="text-2xl font-semibold">
+              Admin access is not available
+            </h1>
+            <p className="max-w-prose text-muted-foreground">
+              Sign in with an account that has an owner or admin role in its trusted Supabase
+              authentication metadata. If you already have that role, check that the Supabase
+              connection is configured.
+            </p>
+            <Button asChild variant="outline">
+              <Link to="/auth">Go to sign in</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const current = sections.find((item) => item.id === section) ?? sections[0];
+
+  return (
+    <div className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold">App administration</h1>
+          <p className="mt-2 text-muted-foreground">
+            Manage the app safely. Changes are unavailable until their backend is configured.
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm text-secondary-foreground">
+          <LockKeyhole size={15} aria-hidden="true" />
+          {access.role === "owner" ? "Owner" : "Admin"} access
+        </span>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <nav aria-label="Admin sections" className="flex gap-2 overflow-x-auto lg:flex-col">
+          {sections.map(({ id, label, icon: Icon }) => (
+            <Button
+              key={id}
+              type="button"
+              variant={section === id ? "secondary" : "ghost"}
+              className="justify-start whitespace-nowrap"
+              aria-current={section === id ? "page" : undefined}
+              onClick={() => setSection(id)}
+            >
+              <Icon size={17} aria-hidden="true" />
+              {label}
+            </Button>
+          ))}
+        </nav>
+
+        <section className="min-w-0 space-y-5" aria-labelledby="admin-section-title">
+          <div>
+            <h2 id="admin-section-title" className="text-xl font-semibold">
+              {current.label}
+            </h2>
+          </div>
+          {section === "overview" ? <Overview /> : null}
+          {section === "access" ? <AccessSection /> : null}
+          {section === "content" ? <ContentSection /> : null}
+          {section === "settings" ? <SettingsSection /> : null}
+          {section === "legal" ? <LegalSection /> : null}
+          {section === "support" ? <SupportSection /> : null}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function Status({ children }: { children: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+      <span className="size-2 rounded-full bg-amber-500" aria-hidden="true" />
+      {children}
+    </span>
+  );
+}
+
+function SetupRow({
+  title,
+  description,
+  status = "Backend setup required",
+}: {
+  title: string;
+  description: string;
+  status?: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-3 border-b py-4 last:border-b-0">
+      <div className="max-w-2xl">
+        <h3 className="font-medium">{title}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      </div>
+      <Status>{status}</Status>
+    </div>
+  );
+}
+
+function Overview() {
+  return (
+    <>
+      <div className="rounded-lg border bg-card px-5">
+        <SetupRow
+          title="Admin permissions"
+          description="This page checks the signed-in user's trusted app_metadata role on the server."
+          status="Server-checked"
+        />
+        <SetupRow
+          title="Resource publishing"
+          description="Study content is currently bundled with the app; no admin publishing store is configured."
+        />
+        <SetupRow
+          title="Feature visibility"
+          description="The app has no persistent admin-controlled feature settings yet."
+        />
+        <SetupRow
+          title="Legal, support and analytics"
+          description="These controls need versioned storage and approved service integrations."
+        />
+      </div>
+      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+        Admin actions are intentionally unavailable until owner-scoped database policies and
+        persistent management tables are configured. This avoids showing switches that do not
+        actually save or publish changes.
+      </div>
+    </>
+  );
+}
+
+function AccessSection() {
+  return (
+    <div className="rounded-lg border bg-card px-5">
+      <SetupRow
+        title="Grant or revoke access"
+        description="Roles are read from Supabase app_metadata, which users cannot change from their profile."
+      />
+      <SetupRow
+        title="Role assignment workflow"
+        description="For now, the project owner must assign trusted roles through a protected Supabase admin process. Never grant roles from this browser page or user-editable metadata."
+      />
+      <SetupRow
+        title="Separate editor and support roles"
+        description="The first gate recognizes owner and admin. Narrower role capabilities need to be designed and enforced before inviting additional operators."
+      />
+    </div>
+  );
+}
+
+function ContentSection() {
+  return (
+    <>
+      <div className="rounded-lg border bg-card px-5">
+        <SetupRow
+          title="Road-sign library"
+          description="389 master entries are currently compiled from static app data."
+          status="Bundled with app"
+        />
+        <SetupRow
+          title="Guides and study references"
+          description="Published guides and question content are shipped with the application."
+          status="Bundled with app"
+        />
+        <SetupRow
+          title="Upload, preview and publish"
+          description="Uploads and visibility switches require a configured storage bucket, resource metadata, and server-enforced publication rules."
+        />
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Editing bundled content still requires a reviewed code change and deployment; this panel
+        will not pretend a local toggle changed what learners see.
+      </p>
+    </>
+  );
+}
+
+function SettingsSection() {
+  return (
+    <div className="rounded-lg border bg-card px-5">
+      <SetupRow
+        title="Feature visibility"
+        description="There is no persistent feature-flag store. Hiding a link alone would not protect a route or change server behavior."
+      />
+      <SetupRow
+        title="Maintenance notice"
+        description="A site-wide notice needs a server-backed setting so it is consistent across devices and deployments."
+      />
+      <SetupRow
+        title="Edit application behavior"
+        description="Executable functions remain code-reviewed and deployed; this panel is for controlled settings, not code editing."
+        status="Code deployment"
+      />
+    </div>
+  );
+}
+
+function LegalSection() {
+  return (
+    <div className="rounded-lg border bg-card px-5">
+      <SetupRow
+        title="About & Legal"
+        description="The current document is maintained in the application source."
+        status="Source managed"
+      />
+      <SetupRow
+        title="Version history and effective dates"
+        description="Publishing dated versions and recording acknowledgements requires persistent legal-document storage."
+      />
+      <SetupRow
+        title="Publisher contact details"
+        description="The support email and CIPC number remain placeholders until verified details are supplied."
+      />
+      <Button asChild variant="outline" className="mb-5">
+        <Link to="/about">
+          View current legal page
+          <ArrowUpRight size={16} aria-hidden="true" />
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
+function SupportSection() {
+  return (
+    <div className="rounded-lg border bg-card px-5">
+      <SetupRow
+        title="Email replies"
+        description="There is no connected support inbox or email delivery provider in the app."
+      />
+      <SetupRow
+        title="Usage tracking"
+        description="No admin analytics dashboard is configured. Tracking should be minimized and documented before collection begins."
+      />
+      <SetupRow
+        title="Admin audit trail"
+        description="A durable, append-only record of permission, publishing and settings changes needs a protected database table."
+      />
+    </div>
+  );
+}

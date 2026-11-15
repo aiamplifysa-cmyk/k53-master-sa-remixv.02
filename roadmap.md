@@ -3,6 +3,7 @@
 - [x] Build eight-category learning dashboard, lessons and road-sign library.
 - [x] Build practice, retry pile and section-scored mock tests.
 - [x] Add learner profiles, sign-in and batched progress sync.
+- [x] Add a server-guarded admin workspace shell; management actions remain disabled until backend storage and policies are configured.
 - [ ] Configure owner-scoped RLS policies for learner tables in Lovable; the checked-in migration enables RLS but declares no policies.
 - [x] Merge guest study progress into the first signed-in account on this device.
 - [x] Add practical/DLTC guides and supplied references.

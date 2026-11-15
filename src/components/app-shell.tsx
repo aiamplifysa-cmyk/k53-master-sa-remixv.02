@@ -13,10 +13,12 @@ import {
   RotateCcw,
   GraduationCap,
   Info,
+  Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStudy } from "./study-provider";
 import type { ReactNode } from "react";
+import { getAdminRole } from "@/lib/admin-role";
 const nav = [
   { to: "/", label: "My learning", icon: LayoutDashboard },
   { to: "/learn", label: "Learn by category", icon: BookOpen },
@@ -95,6 +97,18 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span>About & legal</span>
             </Link>
           </Button>
+          {getAdminRole({ app_metadata: user?.app_metadata }) ? (
+            <Button
+              asChild
+              variant="ghost"
+              className={`nav-link ${path === "/admin" ? "nav-active" : ""}`}
+            >
+              <Link to="/admin" aria-label="App administration" title="App administration">
+                <Settings2 />
+                <span>Administration</span>
+              </Link>
+            </Button>
+          ) : null}
         </nav>
         <div className="sidebar-bottom">
           <div className="sa-flag" aria-label="South Africa">
@@ -119,7 +133,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                     ? "DLTC & resources"
                     : path === "/about"
                       ? "About & legal"
-                      : "Your account")}
+                      : path === "/admin"
+                        ? "Administration"
+                        : "Your account")}
             </strong>
           </div>
           <div className="header-right">
