@@ -223,7 +223,14 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     const reportCloudError = (error: unknown) => {
       if (generation.current !== initialGeneration) return;
       console.error("Could not initialize cloud sync", error);
-      setCloudError("Account sync is unavailable. You can still study on this device.");
+      const missingConfiguration =
+        error instanceof Error &&
+        error.message.toLowerCase().includes("missing supabase environment variable");
+      setCloudError(
+        missingConfiguration
+          ? "Cloud sync is not configured for this deployment. Connect the correct Supabase project and set its URL and publishable key. You can still study on this device."
+          : "Account sync is unavailable. You can still study on this device.",
+      );
       void switchUser(null);
     };
     let unsubscribe = () => {};

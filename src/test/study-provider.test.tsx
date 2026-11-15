@@ -147,6 +147,29 @@ describe("StudyProvider account isolation", () => {
     await waitFor(() => expect(screen.getByTestId("ready")).toHaveTextContent("ready"));
     expect(screen.getByText("signed out")).toBeTruthy();
     expect(screen.getByRole("status")).toHaveTextContent(
+      "Cloud sync is not configured for this deployment. Connect the correct Supabase project and set its URL and publishable key.",
+    );
+  });
+
+  it("keeps a generic sync error for non-configuration failures", async () => {
+    const database = {
+      get: vi.fn(async () => undefined),
+      put: vi.fn(async () => {}),
+    };
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.onAuthStateChange.mockImplementation(() => {
+      throw new Error("Auth service returned 404");
+    });
+    mocks.openDB.mockResolvedValue(database);
+
+    render(
+      <StudyProvider>
+        <Probe />
+      </StudyProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("ready")).toHaveTextContent("ready"));
+    expect(screen.getByRole("status")).toHaveTextContent(
       "Account sync is unavailable. You can still study on this device.",
     );
   });
