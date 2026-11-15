@@ -3,15 +3,13 @@ import { MapPin, FileText, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { pageHead } from "@/lib/metadata";
 import documents from "@/data/documents.json";
-export const Route = createFileRoute("/dltc")({
-  head: () =>
-    pageHead(
-      "DLTC and resources",
-      "Prepare your licensing centre appointment and read the supplied K53 reference manuals.",
-    ),
-  component: DLTC,
-});
-function DLTC() {
+
+const resourceDocs = documents.map((doc) => ({
+  ...doc,
+  available: typeof doc.url === "string" && doc.url.trim().length > 0 && !doc.url.startsWith("/__l5e/assets-v1/"),
+}));
+
+export function DLTCContent() {
   return (
     <>
       <div className="page-heading">
@@ -57,25 +55,50 @@ function DLTC() {
       <div className="section-heading">
         <div>
           <h2>Your reference shelf</h2>
-          <p>Supplied manuals and charts · PDFs need a connection unless already downloaded.</p>
+          <p>Supplied manuals and charts · unavailable resources are disabled until their files are published.</p>
         </div>
       </div>
       <div className="document-list">
-        {documents.map((d) => (
-          <div key={d.name}>
-            <FileText size={22} />
-            <div>
-              <h3>{d.name}</h3>
-              <small>{d.description}</small>
+        {resourceDocs.map((doc) => {
+          const isAvailable = doc.available;
+          const label = `Open ${doc.name}`;
+          return (
+            <div key={doc.name}>
+              <FileText size={22} />
+              <div>
+                <h3>{doc.name}</h3>
+                <small>{doc.description}</small>
+              </div>
+              {isAvailable ? (
+                <Button asChild variant="outline" size="icon">
+                  <a href={doc.url} target="_blank" rel="noreferrer" aria-label={label}>
+                    <ArrowUpRight />
+                  </a>
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label={`${doc.name} is unavailable in this build`}
+                  title={`${doc.name} is unavailable in this build`}
+                  disabled
+                >
+                  <FileText />
+                </Button>
+              )}
             </div>
-            <Button asChild variant="outline" size="icon">
-              <a href={d.url} target="_blank" rel="noreferrer" aria-label={`Open ${d.name}`}>
-                <ArrowUpRight />
-              </a>
-            </Button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </>
   );
 }
+
+export const Route = createFileRoute("/dltc")({
+  head: () =>
+    pageHead(
+      "DLTC and resources",
+      "Prepare your licensing centre appointment and read the supplied K53 reference manuals.",
+    ),
+  component: DLTCContent,
+});
