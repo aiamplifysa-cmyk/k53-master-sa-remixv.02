@@ -31,6 +31,7 @@ const Context = createContext<{
   ready: boolean;
   loadError: string | null;
   cloudError: string | null;
+  storageError: string | null;
   online: boolean;
   syncState: string;
   name: string;
@@ -45,6 +46,7 @@ const Context = createContext<{
   ready: false,
   loadError: null,
   cloudError: null,
+  storageError: null,
   online: true,
   syncState: "On this device",
   name: "Learner",
@@ -68,7 +70,8 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     [name, setName] = useState("Learner"),
     [ready, setReady] = useState(false),
     [loadError, setLoadError] = useState<string | null>(null),
-    [cloudError, setCloudError] = useState<string | null>(null);
+    [cloudError, setCloudError] = useState<string | null>(null),
+    [storageError, setStorageError] = useState<string | null>(null);
   const current = useRef(progress),
     identity = useRef<User | null>(null),
     key = useRef("guest"),
@@ -79,9 +82,21 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     read = useServerFn(loadProgress);
   const persist = (p: Progress) => {
     const storageKey = key.current;
+    const writeGeneration = generation.current;
     current.current = p;
     setProgress(p);
-    void db().then((d) => d.put("progress", p, storageKey));
+    void db()
+      .then((d) => d.put("progress", p, storageKey))
+      .then(() => {
+        if (generation.current === writeGeneration) setStorageError(null);
+      })
+      .catch((error: unknown) => {
+        if (generation.current !== writeGeneration) return;
+        console.error("Could not save study progress", error);
+        setStorageError(
+          "Progress could not be saved on this device. Check browser storage and try again.",
+        );
+      });
   };
   const refresh = async () => {
     const account = identity.current;
@@ -144,6 +159,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       current.current = initial;
       setReady(false);
       setLoadError(null);
+      setStorageError(null);
       setUser(null);
       setProgress(initial);
       setName("Learner");
@@ -225,6 +241,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
         ready,
         loadError,
         cloudError,
+        storageError,
         online,
         syncState,
         name,

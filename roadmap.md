@@ -3,6 +3,7 @@
 - [x] Build practice, retry pile and section-scored mock tests.
 - [x] Add learner profiles, sign-in and batched progress sync.
 - [ ] Configure owner-scoped RLS policies for learner tables in Lovable; the checked-in migration enables RLS but declares no policies.
+- [ ] Preserve guest progress when a learner signs in; local progress currently stays in the guest namespace.
 - [x] Add practical/DLTC guides and supplied references.
 - [x] Add guarded installable offline support with a fallback for uncached pages.
 - [x] Verify public desktop/mobile practice and flashcard flows; nine learning/routing tests passed.

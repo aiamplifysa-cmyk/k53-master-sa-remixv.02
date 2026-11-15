@@ -33,12 +33,13 @@ vi.mock("@/lib/progress.functions", () => ({
 }));
 
 function Probe() {
-  const { user, ready, cloudError, record } = useStudy();
+  const { user, ready, cloudError, storageError, record } = useStudy();
   return (
     <>
       <span>{user?.id ?? "signed out"}</span>
       <span data-testid="ready">{ready ? "ready" : "loading"}</span>
       {cloudError ? <span role="status">{cloudError}</span> : null}
+      {storageError ? <span role="alert">{storageError}</span> : null}
       <button
         onClick={() =>
           record([
@@ -139,5 +140,32 @@ describe("StudyProvider account isolation", () => {
     expect(screen.getByRole("status")).toHaveTextContent(
       "Account sync is unavailable. You can still study on this device.",
     );
+  });
+
+  it("reports local persistence failures instead of silently claiming progress is saved", async () => {
+    const database = {
+      get: vi.fn(async () => undefined),
+      put: vi.fn().mockRejectedValue(new Error("storage quota exceeded")),
+    };
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.getSession.mockResolvedValue({ data: { session: null } });
+    mocks.onAuthStateChange.mockImplementation(() => ({
+      data: { subscription: { unsubscribe: vi.fn() } },
+    }));
+    mocks.openDB.mockResolvedValue(database);
+
+    render(
+      <StudyProvider>
+        <Probe />
+      </StudyProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("ready")).toHaveTextContent("ready"));
+    fireEvent.click(screen.getByRole("button", { name: "Record attempt" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Progress could not be saved on this device.",
+    );
+    consoleError.mockRestore();
   });
 });

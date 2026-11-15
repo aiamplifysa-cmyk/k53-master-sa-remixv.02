@@ -16,7 +16,7 @@ export const Route = createFileRoute("/auth")({
     ),
   component: Auth,
 });
-function Auth() {
+export function Auth() {
   const { user, name, refresh, progress } = useStudy();
   const navigate = useNavigate(),
     router = useRouter(),
@@ -60,11 +60,19 @@ function Auth() {
   }
   async function social(provider: "google" | "lovable") {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) setMessage(result.error.message);
-    setBusy(false);
+    setMessage("");
+    try {
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) setMessage(result.error.message);
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Could not start sign-in. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
   if (user)
     return (
@@ -86,12 +94,21 @@ function Auth() {
             disabled={busy}
             onClick={async () => {
               setBusy(true);
-              const { error } = await supabase
-                .from("profiles")
-                .upsert({ id: user.id, display_name: display || name, vehicle: progress.vehicle });
-              setMessage(error ? "Could not save your profile." : "Profile saved.");
-              await refresh();
-              setBusy(false);
+              try {
+                const { error } = await supabase.from("profiles").upsert({
+                  id: user.id,
+                  display_name: display || name,
+                  vehicle: progress.vehicle,
+                });
+                if (error) throw error;
+                setMessage("Profile saved.");
+                await refresh();
+              } catch (error) {
+                console.error("Could not save learner profile", error);
+                setMessage("Could not save your profile. Please try again.");
+              } finally {
+                setBusy(false);
+              }
             }}
           >
             Save profile
@@ -103,12 +120,22 @@ function Auth() {
           <p role="status">{message}</p>
           <Button
             variant="ghost"
+            disabled={busy}
             onClick={async () => {
-              await queryClient.cancelQueries();
-              queryClient.clear();
-              await supabase.auth.signOut();
-              await router.invalidate();
-              await navigate({ to: "/auth", replace: true });
+              setBusy(true);
+              try {
+                await queryClient.cancelQueries();
+                queryClient.clear();
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                await router.invalidate();
+                await navigate({ to: "/auth", replace: true });
+              } catch (error) {
+                console.error("Could not sign out", error);
+                setMessage("Could not sign out. Please try again.");
+              } finally {
+                setBusy(false);
+              }
             }}
           >
             <LogOut />

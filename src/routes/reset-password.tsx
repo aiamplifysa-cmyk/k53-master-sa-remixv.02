@@ -27,11 +27,15 @@ function Reset() {
         onSubmit={async (e) => {
           e.preventDefault();
           setBusy(true);
-          const { error } = await supabase.auth.updateUser({ password });
-          setMessage(
-            error ? error.message : "Password updated. You can sign in with your new password.",
-          );
-          setBusy(false);
+          try {
+            const { error } = await supabase.auth.updateUser({ password });
+            if (error) throw error;
+            setMessage("Password updated. You can sign in with your new password.");
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Could not update your password.");
+          } finally {
+            setBusy(false);
+          }
         }}
       >
         {recovery ? (
