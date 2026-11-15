@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { ALL_QUESTIONS, QUESTIONS } from "@/lib/quiz";
 import { questionVisuals, signCodesIn } from "@/lib/question-visuals";
 import { artworkFor } from "@/components/sign-graphic";
+import artwork from "@/data/sign-artwork.json";
+import { signArtworkUrl } from "@/lib/sign-artwork-url";
 
 describe("question pictures", () => {
   it("every question has at least two options and a valid answer", () => {
@@ -21,9 +23,25 @@ describe("question pictures", () => {
     expect(questionVisuals(q).some((v) => v.kind === "sign" && v.code === "R1")).toBe(true);
     expect(artworkFor("R1")).toBeTruthy();
   });
+  it("uses app-hosted chart images for every sign", () => {
+    const urls = new Set(artwork.map((entry) => signArtworkUrl(entry.url)));
+    expect(urls).toEqual(
+      new Set([
+        "/assets/charts/road-sign-sheet-1.webp",
+        "/assets/charts/road-sign-sheet-2.webp",
+        "/assets/charts/road-sign-sheet-3.webp",
+        "/assets/charts/road-sign-sheet-4.webp",
+      ]),
+    );
+  });
   it("never shows the vehicle-control component table that lists the answer", () => {
     for (const q of QUESTIONS.filter((x) => x.vehicle))
-      expect(questionVisuals(q).some((v) => v.kind === "image" && /numbered vehicle controls/i.test(v.cap)), q.id).toBe(false);
+      expect(
+        questionVisuals(q).some(
+          (v) => v.kind === "image" && /numbered vehicle controls/i.test(v.cap),
+        ),
+        q.id,
+      ).toBe(false);
   });
   it("every non-sign picture has a caption and a hosted address", () => {
     for (const q of QUESTIONS)

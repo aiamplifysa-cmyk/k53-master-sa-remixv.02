@@ -10,6 +10,7 @@ import artwork from "./src/data/sign-artwork.json";
 import references from "./src/data/reference-images.json";
 import questions from "./src/data/questions.json";
 import { isCacheableNavigation, offlineNavigationFallback } from "./src/lib/offline-navigation";
+import { signArtworkUrl } from "./src/lib/sign-artwork-url";
 
 export default defineConfig({
   plugins: [
@@ -38,7 +39,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5000000,
         additionalManifestEntries: [
           ...new Set([
-            ...artwork.map((a) => a.url),
+            ...artwork.map((a) => signArtworkUrl(a.url)),
             ...references.manual,
             ...Object.values(references.vehicle).flat(),
             ...questions.flatMap((q) => q.images?.map((i) => i.url) ?? []),
