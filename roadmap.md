@@ -5,9 +5,9 @@
 - [x] Add learner profiles, sign-in and batched progress sync.
 - [x] Add a server-guarded admin workspace shell; management actions remain disabled until backend storage and policies are configured.
 - [x] Restrict the admin portal to OTP-verified owner/admin emails and allow admins to grant trusted admin roles.
-- [ ] Connect the Cloudflare deployment to the correct Supabase project: set build-time `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`, plus Worker runtime `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. Keep `SUPABASE_SERVICE_ROLE_KEY` server-only; it is required for admin grants, not sign-in.
-- [ ] Configure the Supabase Magic Link email template to send `{{ .Token }}` codes, confirm the owner account exists, and allow the deployed app's auth redirect URLs.
-- [ ] Configure owner-scoped RLS policies for learner tables in Lovable; the checked-in migration enables RLS but declares no policies.
+- [x] Create a standalone Supabase project for K53 Master SA and add learner tables, indexes, profile creation trigger, and owner-scoped RLS policies.
+- [ ] Connect the Cloudflare deployment to that project: set build-time `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`, plus Worker runtime `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. Keep `SUPABASE_SERVICE_ROLE_KEY` server-only; it is required for admin grants, not sign-in.
+- [ ] Configure the Supabase email OTP template to send `{{ .Token }}`, confirm the owner account exists, and allow the deployed app's auth redirect URLs.
 - [x] Merge guest study progress into the first signed-in account on this device.
 - [x] Add practical/DLTC guides and supplied references.
 - [x] Add guarded installable offline support with a fallback for uncached pages.
