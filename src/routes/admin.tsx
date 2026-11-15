@@ -254,14 +254,13 @@ function AccessSection() {
   );
 }
 
-function AdminCodeLogin({ onVerified }: { onVerified: (id: string) => void }) {
-  const { user, cloudError } = useStudy();
+export function AdminCodeLogin({ onVerified }: { onVerified: (id: string) => void }) {
+  const { user } = useStudy();
   const [email, setEmail] = useState(user?.email ?? ADMIN_OWNER_EMAIL);
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const authUnavailable = Boolean(cloudError);
 
   async function requestCode(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -283,7 +282,7 @@ function AdminCodeLogin({ onVerified }: { onVerified: (id: string) => void }) {
         error instanceof Error && error.message.includes("Missing Supabase environment variable");
       setMessage(
         missingConfiguration
-          ? "Supabase Auth is not configured in this preview. Connect Supabase in Lovable Cloud before requesting a code."
+          ? "Supabase Auth is not configured for this deployment. Set the Supabase URL and publishable key in your hosting environment before requesting a code."
           : "Supabase Auth could not send a code. Check the account, OTP email template and mail delivery settings.",
       );
     } finally {
@@ -315,15 +314,6 @@ function AdminCodeLogin({ onVerified }: { onVerified: (id: string) => void }) {
 
   return (
     <div className="w-full max-w-md space-y-3">
-      {authUnavailable ? (
-        <p
-          className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm"
-          role="alert"
-        >
-          Supabase Auth is unavailable in this preview, so a code cannot be sent. Connect Supabase
-          in Lovable Cloud and verify the project URL and publishable key configuration.
-        </p>
-      ) : null}
       <form className="space-y-3" onSubmit={sent ? verifyCode : requestCode}>
         <label className="block space-y-1.5 text-sm font-medium" htmlFor="admin-email">
           Email address
@@ -333,7 +323,7 @@ function AdminCodeLogin({ onVerified }: { onVerified: (id: string) => void }) {
             autoComplete="email"
             maxLength={254}
             required
-            disabled={busy || sent || authUnavailable}
+            disabled={busy || sent}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
@@ -349,13 +339,13 @@ function AdminCodeLogin({ onVerified }: { onVerified: (id: string) => void }) {
               pattern="[0-9]{6}"
               maxLength={6}
               required
-              disabled={busy || authUnavailable}
+              disabled={busy}
               value={code}
               onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
             />
           </label>
         ) : null}
-        <Button type="submit" disabled={busy || authUnavailable} className="w-full">
+        <Button type="submit" disabled={busy} className="w-full">
           {busy ? "Please wait…" : sent ? "Verify code and open admin" : "Email me a sign-in code"}
         </Button>
       </form>

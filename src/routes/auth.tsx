@@ -8,6 +8,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useStudy } from "@/components/study-provider";
 import { pageHead } from "@/lib/metadata";
+
+function authErrorMessage(error: unknown): string {
+  const detail = error instanceof Error ? error.message.toLowerCase() : "";
+  if (detail.includes("missing supabase environment variable"))
+    return "Sign-in is not configured for this deployment. Connect Supabase and set its URL and publishable key in your hosting environment.";
+  if (detail.includes("invalid login credentials"))
+    return "Email or password is incorrect. Check your details or reset your password.";
+  if (detail.includes("email not confirmed"))
+    return "Confirm your email address before signing in. Check your inbox for the confirmation link.";
+  if (detail.includes("rate limit") || detail.includes("too many requests"))
+    return "Too many attempts. Wait a little while, then try again.";
+  if (detail.includes("failed to fetch") || detail.includes("network"))
+    return "Could not reach the sign-in service. Check your connection and try again.";
+  return "Could not complete this request. Check your details and try again.";
+}
+
 export const Route = createFileRoute("/auth")({
   head: () =>
     pageHead(
@@ -31,29 +47,33 @@ export function Auth() {
     e.preventDefault();
     setBusy(true);
     setMessage("");
+    const normalizedEmail = email.trim().toLowerCase();
     try {
       if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
           redirectTo: `${window.location.origin}/reset-password`,
         });
         if (error) throw error;
         setMessage("Check your email for a password reset link.");
       } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: normalizedEmail,
           password,
           options: { emailRedirectTo: window.location.origin, data: { display_name: display } },
         });
         if (error) throw error;
         setMessage("Check your email to confirm your account before signing in.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        });
         if (error) throw error;
         await router.invalidate();
         await navigate({ to: "/" });
       }
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Please try again.");
+    } catch (error) {
+      setMessage(authErrorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -67,9 +87,7 @@ export function Auth() {
       });
       if (result.error) setMessage(result.error.message);
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Could not start sign-in. Please try again.",
-      );
+      setMessage(authErrorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -224,11 +242,15 @@ export function Auth() {
         <Button
           variant="link"
           onClick={() => {
-            setMode(mode === "signup" ? "signin" : "signup");
+            setMode(mode === "signin" ? "signup" : "signin");
             setMessage("");
           }}
         >
-          {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
+          {mode === "signin"
+            ? "New here? Create an account"
+            : mode === "forgot"
+              ? "Back to sign in"
+              : "Already have an account? Sign in"}
         </Button>
         {mode === "signin" ? (
           <Button variant="link" onClick={() => setMode("forgot")}>
