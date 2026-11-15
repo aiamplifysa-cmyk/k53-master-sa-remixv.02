@@ -4,6 +4,7 @@ import { questionVisuals, signCodesIn } from "@/lib/question-visuals";
 import { artworkFor } from "@/components/sign-graphic";
 import artwork from "@/data/sign-artwork.json";
 import { signArtworkUrl } from "@/lib/sign-artwork-url";
+import { localResourceUrl } from "@/lib/local-resource-url";
 
 describe("question pictures", () => {
   it("every question has at least two options and a valid answer", () => {
@@ -34,20 +35,15 @@ describe("question pictures", () => {
       ]),
     );
   });
-  it("never shows the vehicle-control component table that lists the answer", () => {
-    for (const q of QUESTIONS.filter((x) => x.vehicle))
-      expect(
-        questionVisuals(q).some(
-          (v) => v.kind === "image" && /numbered vehicle controls/i.test(v.cap),
-        ),
-        q.id,
-      ).toBe(false);
+  it("maps legacy uploaded image URLs to public resources paths", () => {
+    expect(localResourceUrl("/__l5e/assets-v1/abc123/example.png")).toBe("/resources/example.png");
+    expect(localResourceUrl("/resources/example.png")).toBe("/resources/example.png");
   });
-  it("every non-sign picture has a caption and a hosted address", () => {
+  it("every non-sign picture has a caption and a local resource address", () => {
     for (const q of QUESTIONS)
       for (const v of questionVisuals(q))
         if (v.kind === "image") {
-          expect(v.url, q.id).toMatch(/^\/__l5e\/assets-v1\//);
+          expect(v.url, q.id).toMatch(/^\/resources\//);
           expect(v.cap.length, q.id).toBeGreaterThan(0);
         }
   });

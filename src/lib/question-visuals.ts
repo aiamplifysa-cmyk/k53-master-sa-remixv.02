@@ -1,6 +1,7 @@
 import { artworkFor } from "@/components/sign-graphic";
 import { GROUP_INFO, signByCode } from "@/data/signs";
 import type { Question } from "@/lib/quiz";
+import { localResourceUrl } from "@/lib/local-resource-url";
 
 export type Visual =
   | { kind: "sign"; code: string; label: string }
@@ -41,7 +42,7 @@ export function questionVisuals(q: Question): Visual[] {
       if (!codes.includes(c)) codes.push(c);
       continue;
     }
-    visuals.push({ kind: "image", url: img.url, cap: img.cap });
+    visuals.push({ kind: "image", url: localResourceUrl(img.url), cap: img.cap });
   }
   // Pack sign pictures are rough placeholders: drop them once official chart artwork is shown.
   if (codes.length) return codes.map((code) => ({ kind: "sign" as const, code, label: labelFor(code) }));

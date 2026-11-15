@@ -1,28 +1,28 @@
 {
-"manual": [
-"/__l5e/assets-v1/cd0c5f42-8652-47e1-ae25-2ddf13855a92/manual_sign_reference_page_1.png",
-"/__l5e/assets-v1/7f7a5f81-d90e-49b8-ae08-a75703cc11e9/manual_sign_reference_page_2.png",
-"/__l5e/assets-v1/1f93622f-8018-4bf6-9250-0c93ab3724fc/manual_sign_reference_page_3.png",
-"/__l5e/assets-v1/048356c1-f00d-44e8-8f38-aada32fb9bd6/manual_sign_reference_page_4.png"
-],
-"vehicle": {
-"motorcycle": [
-"/__l5e/assets-v1/09735f7d-ac7d-4788-8611-2c8b99b36556/vehicle_components_page_02.png",
-"/__l5e/assets-v1/0339c451-3787-492d-aa37-34e0222efa45/vehicle_components_page_03.png",
-"/__l5e/assets-v1/cc27c418-0810-44d6-87de-4e24ad5a6f51/vehicle_components_page_04.png",
-"/__l5e/assets-v1/382bf177-71c2-4a1d-98d3-f451714c2a3a/vehicle_components_page_05.png",
-"/__l5e/assets-v1/c102aeb9-00c0-4e57-bd5a-a5f9f7197bca/vehicle_components_page_06.png"
-],
-"light-vehicle": [
-"/__l5e/assets-v1/578645b3-240a-46cf-a472-15e0444ced88/vehicle_components_page_09.png",
-"/__l5e/assets-v1/8584de2f-2349-4d72-a733-04bb5d0cc05f/vehicle_components_page_10.png",
-"/__l5e/assets-v1/978bd5b7-dae3-41f1-a792-ccd5f7148593/vehicle_components_page_11.png",
-"/__l5e/assets-v1/f0873662-fa2b-40ce-be54-87b221ebc809/vehicle_components_page_12.png"
-],
-"heavy-vehicle": [
-"/__l5e/assets-v1/c825a8f7-d4ed-4fa5-901a-3ebb05d987be/vehicle_components_page_15.png",
-"/__l5e/assets-v1/afe94fc8-09ad-4ad9-918b-bcce840b7c72/vehicle_components_page_16.png",
-"/__l5e/assets-v1/1cddf346-a322-42aa-a03a-3118545cf3c3/vehicle_components_page_17.png"
-]
-}
+  "manual": [
+    "/resources/manual_sign_reference_page_1.png",
+    "/resources/manual_sign_reference_page_2.png",
+    "/resources/manual_sign_reference_page_3.png",
+    "/resources/manual_sign_reference_page_4.png"
+  ],
+  "vehicle": {
+    "motorcycle": [
+      "/resources/vehicle_components_page_02.png",
+      "/resources/vehicle_components_page_03.png",
+      "/resources/vehicle_components_page_04.png",
+      "/resources/vehicle_components_page_05.png",
+      "/resources/vehicle_components_page_06.png"
+    ],
+    "light-vehicle": [
+      "/resources/vehicle_components_page_09.png",
+      "/resources/vehicle_components_page_10.png",
+      "/resources/vehicle_components_page_11.png",
+      "/resources/vehicle_components_page_12.png"
+    ],
+    "heavy-vehicle": [
+      "/resources/vehicle_components_page_15.png",
+      "/resources/vehicle_components_page_16.png",
+      "/resources/vehicle_components_page_17.png"
+    ]
+  }
 }
